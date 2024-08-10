@@ -5,10 +5,10 @@ pragma solidity ^0.8.24;
 import {IERC721} from "@openzeppelin/contracts/token/ERC721/IERC721.sol";
 
 /**
- * @title Player Interface
+ * @title Players Interface
  * @notice Standard interface for the player contract
  */
-interface IPlayer is IERC721 {
+interface IPlayers is IERC721 {
 
     //  ─────────────────────────────────────────────────────────────────────────────
     //  Custom Errors

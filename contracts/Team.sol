@@ -5,7 +5,7 @@ pragma solidity ^0.8.24;
 import {IRiscZeroVerifier} from "risc0/IRiscZeroVerifier.sol";
 import {ImageID} from "./ImageID.sol";
 
-import {IPlayer} from "./interfaces/IPlayer.sol";
+import {IPlayers} from "./interfaces/IPlayers.sol";
 
 import {ERC721} from "@openzeppelin/contracts/token/ERC721/ERC721.sol";
 import {ERC721EnumerableURI} from "./extensions/ERC721EnumerableURI.sol";
@@ -33,7 +33,7 @@ contract Team is ERC721Holder, ERC721EnumerableURI {
     IRiscZeroVerifier public immutable verifier;
 
     /// @notice Address of the Player NFT contract
-    IPlayer public immutable player;
+    IPlayers public immutable players;
 
     /// @notice Image ID of the team building zkVM binary
     bytes32 public constant buildTeamImageId = ImageID.BUILD_TEAM;
@@ -42,9 +42,9 @@ contract Team is ERC721Holder, ERC721EnumerableURI {
     //  Setup
     //  ─────────────────────────────────────────────────────────────────────────────
 
-    constructor(IRiscZeroVerifier _verifier, IPlayer _player) ERC721("Teams", "TM") {
+    constructor(IRiscZeroVerifier _verifier, IPlayers _players) ERC721("Teams", "TM") {
         verifier = _verifier;
-        player = _player;
+        players = _players;
     }
 
     //  ─────────────────────────────────────────────────────────────────────────────
@@ -70,13 +70,13 @@ contract Team is ERC721Holder, ERC721EnumerableURI {
 
     /// @dev Checks the user is authorized to transfer a given tokenId. Must be owner or approved for all
     function _isAuthorized(uint256 tokenId, address user) private returns (bool isAuthorized) {
-        address owner = player.ownerOf(tokenId);
-        return player.ownerOf(tokenId) == user || player.isApprovedForAll(owner, user);
+        address owner = players.ownerOf(tokenId);
+        return players.ownerOf(tokenId) == user || players.isApprovedForAll(owner, user);
     }
 
     /// @dev Checks this contract is approved to use the caller's Player NFTs
     function _checkApproval(address caller) private {
-        require(player.isApprovedForAll(caller, address(this)), PlayerApprovalRequired(caller));
+        require(players.isApprovedForAll(caller, address(this)), PlayerApprovalRequired(caller));
     }
 
 }

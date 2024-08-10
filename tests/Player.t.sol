@@ -2,41 +2,51 @@
 
 pragma solidity ^0.8.24;
 
-import {IPlayers} from "./interfaces/IPlayers.sol";
+import {console} from "forge-std/console.sol";
+import {console2} from "forge-std/console2.sol";
+import {Test} from "forge-std/Test.sol";
 
-import {ERC721EnumerableURI} from "./extensions/ERC721EnumerableURI.sol";
-import {ERC721} from "@openzeppelin/contracts/token/ERC721/ERC721.sol";
+import {Players} from "src/Players.sol";
 
-/**
- * @title Players
- * @notice Records soccer player NFTs.
- * @author Kai Aldag
- */
-contract Players is ERC721EnumerableURI, IPlayers {
+contract TestPlayer is Test {
+
+    //  ─────────────────────────────────────────────────────────────────────────────
+    //  Fields
+    //  ─────────────────────────────────────────────────────────────────────────────
+
+    Players public players;
 
     //  ─────────────────────────────────────────────────────────────────────────────
     //  Setup
     //  ─────────────────────────────────────────────────────────────────────────────
 
-    constructor() ERC721("Players", "PLR") {}
-
-    //  ─────────────────────────────────────────────────────────────────────────────
-    //  Internal Utils
-    //  ─────────────────────────────────────────────────────────────────────────────
-
-    // TODO: Implement this in robust way. Using this for rapid testing
-    function mintPlayer(uint256 tokenId, bytes32 cid) public payable {
-        require(_ownerOf(tokenId) == address(0), ERC721AlreadyMinted(tokenId));
-
-        _mint(msg.sender, tokenId, string(abi.encodePacked(cid)));
+    function setUp() public {
+        players = new Players();
     }
 
     //  ─────────────────────────────────────────────────────────────────────────────
-    //  Internal Utils
+    //  Tests
     //  ─────────────────────────────────────────────────────────────────────────────
 
-    function _baseURI() internal pure override returns (string memory) {
-        return "ipfs://";
+    function test_mintPlayer(bytes32 cid, uint256 tokenId) public {
+        address owner;
+        try players.ownerOf(tokenId) returns (address _owner) {
+            owner = _owner;
+        } catch {
+            owner = address(0);
+        }
+
+        if (owner != address(0)) {
+            return;
+        }
+
+        players.mintPlayer(tokenId, cid);
+
+        assertEq(
+            keccak256(abi.encodePacked(players.tokenURI(tokenId))),
+            keccak256(abi.encodePacked("ipfs://", cid))
+        );
+        assertEq(players.ownerOf(tokenId), address(this));
     }
 
 }
