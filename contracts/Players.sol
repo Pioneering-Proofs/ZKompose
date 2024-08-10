@@ -26,7 +26,7 @@ contract Players is ERC721EnumerableURI, IPlayers {
 
     // TODO: Implement this in robust way. Using this for rapid testing
     function mintPlayer(uint256 tokenId, bytes32 cid) public payable {
-        require(_ownerOf(tokenId) == address(0), ERC721AlreadyMinted(tokenId));
+        if (_ownerOf(tokenId) != address(0)) revert ERC721AlreadyMinted(tokenId);
 
         _mint(msg.sender, tokenId, string(abi.encodePacked(cid)));
     }
