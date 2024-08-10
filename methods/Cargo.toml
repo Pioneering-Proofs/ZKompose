@@ -16,3 +16,7 @@ risc0-zkp = { workspace = true }
 alloy-primitives = { workspace = true }
 alloy-sol-types = { workspace = true }
 risc0-zkvm = { workspace = true, features = ["client"] }
+
+[dependencies]
+ipfs-unixfs = "0.2.0"
+risc0-steel = "0.11.1"
