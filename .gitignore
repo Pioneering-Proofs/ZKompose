@@ -24,5 +24,6 @@ target/
 /.pnp
 .pnp.js
 .yarn/install-state.gz
+.vs/
 
 data/
