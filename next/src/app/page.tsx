@@ -5,8 +5,8 @@ import Navbar from "../components/Navbar";
 import Cards from "@/components/Cards";
 
 function App() {
-  const account = useAccount();
-  const { connectors, connect, status, error } = useConnect();
+  const { address, status, chainId } = useAccount();
+  const { connectors, connect, error } = useConnect();
   const { disconnect } = useDisconnect();
 
   return (
@@ -15,14 +15,14 @@ function App() {
         <h2 className="text-xl">Account</h2>
 
         <div>
-          status: {account.status}
+          status: {status}
           <br />
-          addresses: {JSON.stringify(account.addresses)}
+          address: {address}
           <br />
-          chainId: {account.chainId}
+          chainId: {chainId}
         </div>
 
-        {account.status === "connected" && (
+        {status === "connected" && (
           <button type="button" onClick={() => disconnect()}>
             Disconnect
           </button>
@@ -45,7 +45,7 @@ function App() {
       </div>
 
       <Navbar />
-      <Cards address={JSON.stringify(account.addresses)} />
+      <Cards address={address} />
     </>
   );
 }

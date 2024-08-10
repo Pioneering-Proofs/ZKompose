@@ -3,12 +3,14 @@
  * @see https://v0.dev/t/DHoPpuIM9Li
  * Documentation: https://v0.dev/docs#integrating-generated-code-into-your-nextjs-app
  */
+import { useEffect, useState } from "react";
 import Link from "next/link";
-import { useWriteContract } from "wagmi";
-import PLAYERS_ABI from "@/contracts/abi";
+import secp256k1 from 'secp256k1';
+
+import { Address } from "viem";
+import { useSignMessage, useWriteContract } from "wagmi";
 import { ethers } from "ethers";
-const { randomBytes } = require("crypto");
-const secp256k1 = require("secp256k1");
+import { createHash } from "crypto";
 
 import {
   Card,
@@ -18,54 +20,57 @@ import {
   CardFooter,
 } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import { Tier, tierPricer, TierText } from "@/lib/constants";
+import { PLAYERS_ABI } from "@/contracts/abi";
+import { toast } from "sonner";
+import { waitTx } from "@/lib/utils";
 
 const plans = [
-  { name: "Diamond", price: ethers.parseEther("99") },
-  { name: "Platinum", price: ethers.parseEther("49") },
-  { name: "Gold", price: ethers.parseEther("29") },
-  { name: "Silver", price: ethers.parseEther("19") },
-  { name: "Bronz", price: ethers.parseEther("9") },
+  { tier: Tier.Diamond, name: TierText.Diamond, price: tierPricer(Tier.Diamond) },
+  { tier: Tier.Platinum, name: TierText.Platinum, price: tierPricer(Tier.Platinum) },
+  { tier: Tier.Gold, name: TierText.Gold, price: tierPricer(Tier.Gold) },
+  { tier: Tier.Silver, name: TierText.Silver, price: tierPricer(Tier.Silver) },
+  { tier: Tier.Bronze, name: TierText.Bronze, price: tierPricer(Tier.Bronze) },
 ];
 
-export default function Cards({ address }: { address: string }) {
+export default function Cards({ address }: { address?: Address }) {
   // Set up contract interaction using Wagmi
-  const { config } = {
-    address,
-    abi: PLAYERS_ABI,
-    functionName: "requestPack",
-  };
+  const [tier, setTier] = useState<Tier>();
+  const { writeContractAsync, isPending } = useWriteContract();
+  const { signMessageAsync } = useSignMessage();
 
-  const { write } = useWriteContract(config);
-  const { writeContract } = useWriteContract();
-  // Generate secp256k1 public key
-  const handlePurchase = (planName: string, price: bigint) => {
-    const privKey = Buffer.from(planName, "hex"); // Use a valid private key
-    const pubKey = secp256k1.publicKeyCreate(privKey, false).slice(1); // uncompressed key
+  const handleSignature = async (tier: Tier) => {
+    setTier(tier);
+    const message = `Purchase order for ${address}`;
+    console.log('SIGNING MESSAGE', message)
+    const signature = await signMessageAsync({ message });
+    console.log('signature :>> ', signature);
+    await handlePurchase(signature);
+  }
 
-    const pubKeyX = `0x${pubKey.slice(0, 32).toString("hex")}`;
-    const pubKeyY = `0x${pubKey.slice(32, 64).toString("hex")}`;
-    // generate message to sign
-    // message should have 32-byte length, if you have some other length you can hash message
-    // for example `msg = sha256(rawMessage)`
-    const msg = randomBytes(32);
+  const handlePurchase = async (signData: string) => {
+    if (!signData || !tier) return;
 
-    // generate privKey
+    const id = toast.loading("Processing purchase...");
+    try {
+      const privKeyBuff = createHash("sha256").update(signData).digest();
+      const pubKey = secp256k1.publicKeyCreate(privKeyBuff, true); // uncompressed key
 
-
-    writeContract({
-      abi: PLAYERS_ABI,
-      address: `0x${address}`,
-      functionName: "requestPack",
-      args: [
-        `0x${address}`,
-        planName, // Assume this is the packId, adapt as needed
-        1, // Assume 1 is the tier, adapt as needed
-        { x: pubKeyX, y: pubKeyY }, // secp256k1 public key
-      ],
-      overrides: {
-        value: price, // Send the price along with the transaction
-      },
-    });
+      const hash = await writeContractAsync({
+        abi: PLAYERS_ABI,
+        address: address as Address,
+        functionName: "re",
+        args: [
+          tier,
+          pubKey
+        ],
+        value: tierPricer(tier),
+      });
+      await waitTx(hash);
+      toast.success("Pack purchased successfully", { id });
+    } catch (error) {
+      toast.error("Failed to purchase pack", { id });
+    }
   };
 
   return (
@@ -101,7 +106,8 @@ export default function Cards({ address }: { address: string }) {
               </CardContent>
               <CardFooter>
                 <Button
-                  onClick={() => handlePurchase("purchase", [plan.price])}
+                  disabled={isPending || !address}
+                  onClick={() => handleSignature(plan.tier)}
                 >
                   Select
                 </Button>
@@ -113,78 +119,3 @@ export default function Cards({ address }: { address: string }) {
     </div>
   );
 }
-/* <Card className="bg-[#e5e7eb]">
-            <CardHeader className="bg-[#e5e7eb]">
-              <CardTitle>Platinum</CardTitle>
-            </CardHeader>
-            <CardContent className="p-6">
-              <div className="space-y-2">
-                <h3 className="text-4xl font-bold">$99</h3>
-                <p className="text-muted-foreground">per month</p>
-              </div>
-            </CardContent>
-            <CardFooter>
-              <Button>Select</Button>
-            </CardFooter>
-          </Card>
-          <Card className="bg-[#fcd34d]">
-            <CardHeader className="bg-[#fcd34d]">
-              <CardTitle>Gold</CardTitle>
-            </CardHeader>
-            <CardContent className="p-6">
-              <div className="space-y-2">
-                <h3 className="text-4xl font-bold">$49</h3>
-                <p className="text-muted-foreground">per month</p>
-              </div>
-            </CardContent>
-            <CardFooter>
-              <Button>Select</Button>
-            </CardFooter>
-          </Card>
-          <Card className="bg-[#a3a3a3]">
-            <CardHeader className="bg-[#a3a3a3]">
-              <CardTitle>Silver</CardTitle>
-            </CardHeader>
-            <CardContent className="p-6">
-              <div className="space-y-2">
-                <h3 className="text-4xl font-bold">$29</h3>
-                <p className="text-muted-foreground">per month</p>
-              </div>
-            </CardContent>
-            <CardFooter>
-              <Button>Select</Button>
-            </CardFooter>
-          </Card>
-          <Card className="bg-[#cd7f32]">
-            <CardHeader className="bg-[#cd7f32]">
-              <CardTitle>Bronze</CardTitle>
-            </CardHeader>
-            <CardContent className="p-6">
-              <div className="space-y-2">
-                <h3 className="text-4xl font-bold">$19</h3>
-                <p className="text-muted-foreground">per month</p>
-              </div>
-            </CardContent>
-            <CardFooter>
-              <Button>Select</Button>
-            </CardFooter>
-          </Card>
-          <Card className="bg-[#8b4513]">
-            <CardHeader className="bg-[#8b4513]">
-              <CardTitle>Wood</CardTitle>
-            </CardHeader>
-            <CardContent className="p-6">
-              <div className="space-y-2">
-                <h3 className="text-4xl font-bold">$9</h3>
-                <p className="text-muted-foreground">per month</p>
-              </div>
-            </CardContent>
-            <CardFooter>
-              <Button>Select</Button>
-            </CardFooter>
-          </Card> 
-        </div>
-      </div>
-    </div>
-  );
-} */

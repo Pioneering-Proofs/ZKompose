@@ -1,4 +1,4 @@
-const PLAYERS_ABI = [
+export const PLAYERS_ABI = [
   {
     abi: [
       { type: "constructor", inputs: [], stateMutability: "nonpayable" },
@@ -119,7 +119,11 @@ const PLAYERS_ABI = [
         type: "function",
         name: "requestPack",
         inputs: [
-          { name: "tier", type: "uint8", internalType: "enum IPlayers.Tier" },
+          {
+            name: "tier",
+            type: "uint8",
+            internalType: "enum IPlayers.Tier"
+          },
           {
             name: "key",
             type: "tuple",
@@ -1119,45 +1123,45 @@ const PLAYERS_ABI = [
           license: "MIT",
         },
         "lib/openzeppelin-contracts/contracts/token/ERC721/IERC721Receiver.sol":
-          {
-            keccak256:
-              "0x7f7a26306c79a65fb8b3b6c757cd74660c532cd8a02e165488e30027dd34ca49",
-            urls: [
-              "bzz-raw://d01e0b2b837ee2f628545e54d8715b49c7ef2befd08356c2e7f6c50dde8a1c22",
-              "dweb:/ipfs/QmWBAn6y2D1xgftci97Z3qR9tQnkvwQpYwFwkTvDMvqU4i",
-            ],
-            license: "MIT",
-          },
+        {
+          keccak256:
+            "0x7f7a26306c79a65fb8b3b6c757cd74660c532cd8a02e165488e30027dd34ca49",
+          urls: [
+            "bzz-raw://d01e0b2b837ee2f628545e54d8715b49c7ef2befd08356c2e7f6c50dde8a1c22",
+            "dweb:/ipfs/QmWBAn6y2D1xgftci97Z3qR9tQnkvwQpYwFwkTvDMvqU4i",
+          ],
+          license: "MIT",
+        },
         "lib/openzeppelin-contracts/contracts/token/ERC721/extensions/ERC721Enumerable.sol":
-          {
-            keccak256:
-              "0x36797469c391ea5ba27408e6ca8adf0824ba6f3adea9c139be18bd6f63232c16",
-            urls: [
-              "bzz-raw://0dcf8bb9f7c29d678de34a051b4a71cf27ae56464678696c6913cbbfc75d548a",
-              "dweb:/ipfs/QmSfdgU9V2dXh9oajUxgF9hU1aPnpd1PEMtcchoANsCNmW",
-            ],
-            license: "MIT",
-          },
+        {
+          keccak256:
+            "0x36797469c391ea5ba27408e6ca8adf0824ba6f3adea9c139be18bd6f63232c16",
+          urls: [
+            "bzz-raw://0dcf8bb9f7c29d678de34a051b4a71cf27ae56464678696c6913cbbfc75d548a",
+            "dweb:/ipfs/QmSfdgU9V2dXh9oajUxgF9hU1aPnpd1PEMtcchoANsCNmW",
+          ],
+          license: "MIT",
+        },
         "lib/openzeppelin-contracts/contracts/token/ERC721/extensions/IERC721Enumerable.sol":
-          {
-            keccak256:
-              "0x3d6954a93ac198a2ffa384fa58ccf18e7e235263e051a394328002eff4e073de",
-            urls: [
-              "bzz-raw://1f58c799bd939d3951c94893e83ef86acd56989d1d7db7f9d180c515e29e28ff",
-              "dweb:/ipfs/QmTgAxHAAys4kq9ZfU9YB24MWYoHLGAKSxnYUigPFrNW7g",
-            ],
-            license: "MIT",
-          },
+        {
+          keccak256:
+            "0x3d6954a93ac198a2ffa384fa58ccf18e7e235263e051a394328002eff4e073de",
+          urls: [
+            "bzz-raw://1f58c799bd939d3951c94893e83ef86acd56989d1d7db7f9d180c515e29e28ff",
+            "dweb:/ipfs/QmTgAxHAAys4kq9ZfU9YB24MWYoHLGAKSxnYUigPFrNW7g",
+          ],
+          license: "MIT",
+        },
         "lib/openzeppelin-contracts/contracts/token/ERC721/extensions/IERC721Metadata.sol":
-          {
-            keccak256:
-              "0x37d1aaaa5a2908a09e9dcf56a26ddf762ecf295afb5964695937344fc6802ce1",
-            urls: [
-              "bzz-raw://ed0bfc1b92153c5000e50f4021367b931bbe96372ac6facec3c4961b72053d02",
-              "dweb:/ipfs/Qmbwp8VDerjS5SV1quwHH1oMXxPQ93fzfLVqJ2RCqbowGE",
-            ],
-            license: "MIT",
-          },
+        {
+          keccak256:
+            "0x37d1aaaa5a2908a09e9dcf56a26ddf762ecf295afb5964695937344fc6802ce1",
+          urls: [
+            "bzz-raw://ed0bfc1b92153c5000e50f4021367b931bbe96372ac6facec3c4961b72053d02",
+            "dweb:/ipfs/Qmbwp8VDerjS5SV1quwHH1oMXxPQ93fzfLVqJ2RCqbowGE",
+          ],
+          license: "MIT",
+        },
         "lib/openzeppelin-contracts/contracts/utils/Context.sol": {
           keccak256:
             "0x493033a8d1b176a037b2cc6a04dad01a5c157722049bbecf632ca876224dd4b2",
@@ -1186,15 +1190,15 @@ const PLAYERS_ABI = [
           license: "MIT",
         },
         "lib/openzeppelin-contracts/contracts/utils/introspection/IERC165.sol":
-          {
-            keccak256:
-              "0x4296879f55019b23e135000eb36896057e7101fb7fb859c5ef690cf14643757b",
-            urls: [
-              "bzz-raw://87b3541437c8c443ccd36795e56a338ed12855eec17f8da624511b8d1a7e14df",
-              "dweb:/ipfs/QmeJQCtZrQjtJLr6u7ZHWeH3pBnjtLWzvRrKViAi7UZqxL",
-            ],
-            license: "MIT",
-          },
+        {
+          keccak256:
+            "0x4296879f55019b23e135000eb36896057e7101fb7fb859c5ef690cf14643757b",
+          urls: [
+            "bzz-raw://87b3541437c8c443ccd36795e56a338ed12855eec17f8da624511b8d1a7e14df",
+            "dweb:/ipfs/QmeJQCtZrQjtJLr6u7ZHWeH3pBnjtLWzvRrKViAi7UZqxL",
+          ],
+          license: "MIT",
+        },
         "lib/openzeppelin-contracts/contracts/utils/math/Math.sol": {
           keccak256:
             "0x005ec64c6313f0555d59e278f9a7a5ab2db5bdc72a027f255a37c327af1ec02d",
@@ -1218,6 +1222,4 @@ const PLAYERS_ABI = [
     },
     id: 2,
   },
-];
-
-export default PLAYERS_ABI;
+] as const;
