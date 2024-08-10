@@ -57,9 +57,50 @@ pub struct Skills {
     pub goal_tending: u8,
 }
 
+#[derive(Debug, Serialize, Deserialize)]
+pub struct GenPlayersInput {
+    pub player_count: usize,
+    pub std_dev: u8,
+    pub median: u8,
+    pub u: f64,
+    pub v: f64,
+}
+
 /// Player data contains the usable Player struct as well as the raw bytes of the player's IPFS data which is used to validate the CID.
 #[derive(Clone, Debug, Deserialize, PartialEq, Serialize)]
 pub struct PlayerData {
     pub player: PlayerPosition,
     pub bytes: Vec<u8>,
+}
+
+#[derive(Clone, Debug, Deserialize, PartialEq, Serialize)]
+pub struct PlayerJson {
+    pub name: String,
+    pub description: String,
+    pub external_url: String,
+    pub image: String,
+    pub jersey_number: u8,
+    pub tier: u8,
+    pub overall_rating: u8,
+    pub attributes: Vec<Attribute>,
+    pub skill_multiplier: f32,
+    pub skill: Skill,
+}
+
+#[derive(Clone, Debug, Deserialize, PartialEq, Serialize)]
+pub struct Attribute {
+    pub display_type: String,
+    pub trait_type: String,
+    pub value: u8,
+}
+
+#[derive(Clone, Debug, Deserialize, PartialEq, Serialize)]
+pub struct Skill {
+    pub speed: u8,
+    pub shooting: u8,
+    pub passing: u8,
+    pub dribbling: u8,
+    pub defense: u8,
+    pub physical: u8,
+    pub goal_tending: u8,
 }

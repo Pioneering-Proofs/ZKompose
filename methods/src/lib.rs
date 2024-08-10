@@ -17,9 +17,11 @@ include!(concat!(env!("OUT_DIR"), "/methods.rs"));
 
 #[cfg(test)]
 mod tests {
-    use alloy_primitives::{address, Address, U256};
+    use alloy_primitives::{address, hex::deserialize, Address, U256, U8};
     use alloy_sol_types::SolValue;
-    use common::types::{Player, PlayerData, PlayerPosition, Skills, Team};
+    use common::types::{
+        GenPlayersInput, Player, PlayerData, PlayerJson, PlayerPosition, Skills, Team,
+    };
     use json::{parse, stringify};
     use risc0_zkvm::{default_executor, guest::env::write_slice, serde, ExecutorEnv};
     use std::{env::current_dir, fs};
@@ -58,6 +60,37 @@ mod tests {
         let session_info = default_executor()
             .execute(env, super::BUILD_TEAM_ELF)
             .unwrap();
+    }
+
+    #[test]
+    fn prove_gen_players() {
+        // let player_count = U8::from(10);
+        // let std_dev = U8::from(10);
+        // let median = U8::from(50);
+        let input = GenPlayersInput {
+            player_count: 15,
+            std_dev: 10,
+            median: 50,
+            u: 3.14159,
+            v: 2123.71828,
+        };
+
+        let env = ExecutorEnv::builder()
+            .write(&input)
+            .expect("Invalid input")
+            .build()
+            .unwrap();
+
+        let session_info = default_executor()
+            .execute(env, super::GEN_PLAYER_ELF)
+            .unwrap();
+
+        println!("Generated players: {:?}", session_info.journal.bytes);
+
+        let players: Vec<PlayerJson> = serde::from_slice(&session_info.journal.bytes)
+            .expect("Failed to decode players from guest");
+
+        println!("Player data: {:?}", players);
     }
 
     #[test]

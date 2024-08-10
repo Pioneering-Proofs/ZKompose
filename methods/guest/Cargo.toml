@@ -23,6 +23,9 @@ alloy-primitives = { version = "0.6", default-features = false, features = [
 alloy-sol-types = { version = "0.6" }
 risc0-zkvm = { version = "1.0", default-features = false, features = ['std'] }
 json = "0.12"
+serde = "1.0.205"
+serde_json = "1.0.122"
+sha2 = "0.10.8"
 
 [profile.release]
 lto = "thin"
