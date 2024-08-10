@@ -21,7 +21,7 @@ contract Players is ERC721EnumerableURI, IPlayer {
     constructor() ERC721("Players", "PLR") {}
 
     //  ─────────────────────────────────────────────────────────────────────────────
-    //  Public Functions
+    //  Internal Utils
     //  ─────────────────────────────────────────────────────────────────────────────
 
     // TODO: Implement this in robust way. Using this for rapid testing
