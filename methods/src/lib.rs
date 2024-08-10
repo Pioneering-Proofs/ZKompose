@@ -19,7 +19,9 @@ include!(concat!(env!("OUT_DIR"), "/methods.rs"));
 mod tests {
     use alloy_primitives::{address, hex::deserialize, Address, U256, U8};
     use alloy_sol_types::SolValue;
-    use common::types::{GenPlayersInput, Player, PlayerData, PlayerPosition, Skills, Team};
+    use common::types::{
+        GenPlayersInput, Player, PlayerData, PlayerJson, PlayerPosition, Skills, Team,
+    };
     use json::{parse, stringify};
     use risc0_zkvm::{default_executor, guest::env::write_slice, serde, ExecutorEnv};
     use std::{env::current_dir, fs};
@@ -66,7 +68,7 @@ mod tests {
         // let std_dev = U8::from(10);
         // let median = U8::from(50);
         let input = GenPlayersInput {
-            player_count: 10,
+            player_count: 15,
             std_dev: 10,
             median: 50,
             u: 3.14159,
@@ -85,12 +87,10 @@ mod tests {
 
         println!("Generated players: {:?}", session_info.journal.bytes);
 
-        let player_data_result: Vec<PlayerData> = serde::from_slice(&session_info.journal.bytes)
+        let players: Vec<PlayerJson> = serde::from_slice(&session_info.journal.bytes)
             .expect("Failed to decode players from guest");
-        // .expect("Failed to decode players from guest");
 
-        println!("Player data: {:?}", player_data_result);
-        // println!("Session info: {:?}", players);
+        println!("Player data: {:?}", players);
     }
 
     #[test]
