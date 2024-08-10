@@ -45,7 +45,7 @@ function App() {
       </div>
 
       <Navbar />
-      <Cards />
+      <Cards address={JSON.stringify(account.addresses)} />
     </>
   );
 }

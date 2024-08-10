@@ -4,6 +4,9 @@
  * Documentation: https://v0.dev/docs#integrating-generated-code-into-your-nextjs-app
  */
 import Link from "next/link";
+import { useWriteContract } from "wagmi";
+import PLAYERS_ABI from "@/contracts/abi";
+import { ethers } from "ethers";
 import {
   Card,
   CardHeader,
@@ -13,7 +16,21 @@ import {
 } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 
-export default function Component() {
+const plans = [
+  { name: "Platinum", price: ethers.parseEther("99") },
+  { name: "Gold", price: ethers.parseEther("49") },
+  { name: "Silver", price: ethers.parseEther("29") },
+  { name: "Bronze", price: ethers.parseEther("19") },
+  { name: "Wood", price: ethers.parseEther("9") },
+];
+
+export default function Cards( { params }) {
+  const { writeContract } = useWriteContract();
+
+  const handlePurchase = (planName: string, price: number) => {
+    writeContract({ abi: PLAYERS_ABI, address: });
+  };
+
   return (
     <div className="bg-muted py-12 md:py-24">
       <div className="container grid gap-6 px-4 md:gap-8 md:px-6">
@@ -21,7 +38,7 @@ export default function Component() {
           <div className="grid gap-1">
             <h2 className="text-2xl font-bold tracking-tight">Pricing</h2>
             <p className="text-muted-foreground">
-              Choose the plan that's right for you.
+              Select a team tier to recieve your first 15 players.
             </p>
           </div>
           <Link
@@ -33,7 +50,34 @@ export default function Component() {
           </Link>
         </div>
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 md:grid-cols-5">
-          <Card className="bg-[#e5e7eb]">
+          {plans.map((plan) => (
+            <Card key={plan.name} className="bg-[#e5e7eb]">
+              <CardHeader className="bg-[#e5e7eb]">
+                <CardTitle>{plan.name}</CardTitle>
+              </CardHeader>
+              <CardContent className="p-6">
+                <div className="space-y-2">
+                  <h3 className="text-4xl font-bold">
+                    {ethers.formatEther(plan.price)}
+                  </h3>
+                </div>
+              </CardContent>
+              <CardFooter>
+                <Button
+                  onClick={() => handlePurchase("purchase", [plan.price])}
+                >
+                  Select
+                </Button>
+              </CardFooter>
+            </Card>
+          ))}
+        </div>
+      </div>
+    </div>
+  );
+}
+{
+  /* <Card className="bg-[#e5e7eb]">
             <CardHeader className="bg-[#e5e7eb]">
               <CardTitle>Platinum</CardTitle>
             </CardHeader>
@@ -102,9 +146,10 @@ export default function Component() {
             <CardFooter>
               <Button>Select</Button>
             </CardFooter>
-          </Card>
+          </Card> 
         </div>
       </div>
     </div>
   );
+} */
 }
