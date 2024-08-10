@@ -1,5 +1,5 @@
-use super::types::{Coach, Player, PlayerData, Roster, Skills, Team};
-use array_init::{array_init, try_array_init};
+use super::types::{Coach, Player, Roster, Skills, Team};
+use array_init::try_array_init;
 use json::JsonValue;
 use std::{
     collections::HashSet,

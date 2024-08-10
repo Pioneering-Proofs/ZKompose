@@ -5,3 +5,6 @@ pub mod types;
 
 /// Utilities and miscellaneous implementations
 pub mod utils;
+
+/// Implementation for player struct
+pub mod player;
