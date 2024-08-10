@@ -1,0 +1,8 @@
+[package]
+name = "common"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+cid = { default-features = false, version = "0.5" }
+ipfs-unixfs = "0.2.0"

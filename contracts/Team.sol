@@ -36,7 +36,7 @@ contract Team is ERC721Holder, ERC721EnumerableURI {
     IPlayers public immutable players;
 
     /// @notice Image ID of the team building zkVM binary
-    bytes32 public constant buildTeamImageId = ImageID.BUILD_TEAM;
+    bytes32 public constant buildTeamImageId = ImageID.BUILD_TEAM_ID;
 
     //  ─────────────────────────────────────────────────────────────────────────────
     //  Setup
@@ -76,7 +76,7 @@ contract Team is ERC721Holder, ERC721EnumerableURI {
 
     /// @dev Checks this contract is approved to use the caller's Player NFTs
     function _checkApproval(address caller) private {
-        require(players.isApprovedForAll(caller, address(this)), PlayerApprovalRequired(caller));
+        if (!players.isApprovedForAll(caller, address(this))) revert PlayerApprovalRequired(caller);
     }
 
 }
