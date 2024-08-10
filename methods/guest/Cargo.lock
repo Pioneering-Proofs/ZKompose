@@ -317,6 +317,12 @@ dependencies = [
 ]
 
 [[package]]
+name = "array-init"
+version = "2.1.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "3d62b7694a562cdf5a74227903507c56ab2cc8bdd1f781ed5cb4cf9c9f810bfc"
+
+[[package]]
 name = "arrayref"
 version = "0.3.8"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -526,8 +532,10 @@ dependencies = [
 name = "common"
 version = "0.1.0"
 dependencies = [
+ "array-init",
  "cid",
  "ipfs-unixfs",
+ "json",
  "serde",
 ]
 

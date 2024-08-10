@@ -51,7 +51,7 @@ pub struct Skills {
     pub speed: u8,
     pub shooting: u8,
     pub passing: u8,
-    pub dribble: u8,
+    pub dribbling: u8,
     pub defense: u8,
     pub physical: u8,
     pub goal_tending: u8,

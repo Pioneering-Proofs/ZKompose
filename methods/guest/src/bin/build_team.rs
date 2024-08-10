@@ -21,5 +21,7 @@ fn main() {
     let data = parse(&data).unwrap();
     println!("Team name: {}", data["name"].as_str().unwrap());
 
+    let team = Team::try_from(data).expect("Failed to decode team");
+
     env::commit_slice(U256::from(42).abi_encode().as_slice());
 }

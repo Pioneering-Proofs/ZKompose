@@ -7,3 +7,5 @@ edition = "2021"
 cid = { default-features = false, version = "0.5" }
 ipfs-unixfs = { version = "0.2.0", default-features = false }
 serde = { version = "1.0", features = ["derive"] }
+json = "0.12"
+array-init = "2.1.0"
