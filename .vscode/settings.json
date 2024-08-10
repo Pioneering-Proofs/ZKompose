@@ -1,10 +1,21 @@
 {
-    "rust-analyzer.linkedProjects": [
-        "./apps/Cargo.toml",
-        "./methods/Cargo.toml",
-        "./methods/guest/Cargo.toml",
-    ],
-    "rust-analyzer.check.extraEnv": {
-        "RISC0_SKIP_BUILD": "1",
-    }
+  "rust-analyzer.linkedProjects": [
+    "./apps/Cargo.toml",
+    "./methods/Cargo.toml",
+    "./methods/guest/Cargo.toml"
+  ],
+  "rust-analyzer.check.extraEnv": {
+    "RISC0_SKIP_BUILD": "1"
+  },
+  "editor.formatOnSave": true,
+  "solidity.remappings": [
+    "forge-std/=lib/forge-std/src/",
+    "@openzeppelin/=lib/openzeppelin-contracts/",
+    "risc0/=lib/risc0-ethereum/contracts/src/"
+  ],
+  "solidity.formatter": "forge",
+  "solidity.compileUsingRemoteVersion": "v0.8.24",
+  "solidity.defaultCompiler": "remote",
+  "solidity.compilerOptimization": 400,
+  "solidity-va.debug.parser.showExceptions": true
 }
