@@ -17,7 +17,7 @@ include!(concat!(env!("OUT_DIR"), "/methods.rs"));
 
 #[cfg(test)]
 mod tests {
-    use alloy_primitives::{address, Address, U256, U8};
+    use alloy_primitives::{address, hex::deserialize, Address, U256, U8};
     use alloy_sol_types::SolValue;
     use common::types::{GenPlayersInput, Player, PlayerData, PlayerPosition, Skills, Team};
     use json::{parse, stringify};
@@ -25,40 +25,41 @@ mod tests {
     use std::{env::current_dir, fs};
 
     #[test]
-    // fn prove_build_team() {
-    //     let input_data = include_str!("../../data/teams/0.json");
-    //     // println!("Input data: {}", input_data);
-    //     let mut input_data = parse(input_data).unwrap();
-    //     for n in 0..10 {
-    //         let current = current_dir().unwrap();
-    //         let file_name: String;
-    //         if current.ends_with("methods") {
-    //             file_name = format!("../data/players/{}.json", n);
-    //         } else {
-    //             file_name = format!("../../data/players/{}.json", n);
-    //         }
-    //         println!(
-    //             "Reading player data from: {} from {}",
-    //             file_name,
-    //             current.display()
-    //         );
-    //         let player_data =
-    //             fs::read_to_string(file_name).expect("Should have been able to read the file");
-    //         input_data["players"][n] = parse(&player_data).unwrap();
-    //     }
-    //     println!("Running build team. Data length: {}", input_data.len());
-    //     // println!("Input data: {}", input_data.to_string());
+    fn prove_build_team() {
+        let input_data = include_str!("../../data/teams/0.json");
+        // println!("Input data: {}", input_data);
+        let mut input_data = parse(input_data).unwrap();
+        for n in 0..10 {
+            let current = current_dir().unwrap();
+            let file_name: String;
+            if current.ends_with("methods") {
+                file_name = format!("../data/players/{}.json", n);
+            } else {
+                file_name = format!("../../data/players/{}.json", n);
+            }
+            println!(
+                "Reading player data from: {} from {}",
+                file_name,
+                current.display()
+            );
+            let player_data =
+                fs::read_to_string(file_name).expect("Should have been able to read the file");
+            input_data["players"][n] = parse(&player_data).unwrap();
+        }
+        println!("Running build team. Data length: {}", input_data.len());
+        // println!("Input data: {}", input_data.to_string());
 
-    //     let env = ExecutorEnv::builder()
-    //         .write(&input_data.to_string())
-    //         .unwrap()
-    //         .build()
-    //         .unwrap();
+        let env = ExecutorEnv::builder()
+            .write(&input_data.to_string())
+            .unwrap()
+            .build()
+            .unwrap();
 
-    //     let session_info = default_executor()
-    //         .execute(env, super::BUILD_TEAM_ELF)
-    //         .unwrap();
-    // }
+        let session_info = default_executor()
+            .execute(env, super::BUILD_TEAM_ELF)
+            .unwrap();
+    }
+
     #[test]
     fn prove_gen_players() {
         // let player_count = U8::from(10);
@@ -82,9 +83,14 @@ mod tests {
             .execute(env, super::GEN_PLAYER_ELF)
             .unwrap();
 
-        let players: Vec<PlayerData> = serde::from_slice(&session_info.journal.bytes).unwrap();
+        println!("Generated players: {:?}", session_info.journal.bytes);
 
-        println!("Session info: {:?}", players);
+        let player_data_result: Vec<PlayerData> = serde::from_slice(&session_info.journal.bytes)
+            .expect("Failed to decode players from guest");
+        // .expect("Failed to decode players from guest");
+
+        println!("Player data: {:?}", player_data_result);
+        // println!("Session info: {:?}", players);
     }
 
     #[test]

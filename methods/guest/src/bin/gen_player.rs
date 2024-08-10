@@ -1,7 +1,49 @@
 use common::types::{Attribute, GenPlayersInput, PlayerJson, Skill};
-use fake::{faker::name::en::Name, Fake};
 use risc0_zkvm::guest::env;
 use sha2::{Digest, Sha256};
+
+fn random_name(seed: i32) -> String {
+    let first_name: [&str; 25] = [
+        "James", "John", "Robert", "Michael", "William", "David", "Richard", "Joseph", "Thomas",
+        "Charles", "Daniel", "Matthew", "Anthony", "Donald", "Mark", "Paul", "Steven", "Andrew",
+        "Kenneth", "Joshua", "George", "Kevin", "Brian", "Edward", "Ronald",
+    ];
+    let last_name: [&str; 25] = [
+        "Smith",
+        "Johnson",
+        "Williams",
+        "Jones",
+        "Brown",
+        "Davis",
+        "Miller",
+        "Wilson",
+        "Moore",
+        "Taylor",
+        "Anderson",
+        "Thomas",
+        "Jackson",
+        "White",
+        "Harris",
+        "Martin",
+        "Thompson",
+        "Garcia",
+        "Martinez",
+        "Robinson",
+        "Clark",
+        "Rodriguez",
+        "Lewis",
+        "Lee",
+        "Walker",
+    ];
+
+    let first_name_index = seed % first_name.len() as i32;
+    let last_name_index = seed % last_name.len() as i32;
+
+    format!(
+        "{} {}",
+        first_name[first_name_index as usize], last_name[last_name_index as usize]
+    )
+}
 
 fn hash_f64(hash_u: f64, min: Option<f64>, max: Option<f64>) -> f64 {
     let min = min.unwrap_or(0.0);
@@ -82,13 +124,21 @@ fn calculate_tier(overall_rating: u8) -> u8 {
 }
 
 fn gen_player(player_index: usize, std_dev: u8, median: u8, u: f64, v: f64) -> PlayerJson {
+    println!("Generating player {}", player_index);
     let overall_rating = generate_overall_rating(std_dev as f64, median as f64, u, v);
+    println!("1");
     let skill_scores = generate_skill_scores(overall_rating, u, v);
-    let name: String = Name().fake();
+    println!("2");
     let u = hash_f64(u, None, None);
     let v = hash_f64(v, None, None);
     let jersey_number: u8 = hash_i32(u + v, Some(0), Some(99)) as u8;
+    let name: String = random_name(hash_i32(u + v, Some(0), Some(24)));
+    println!("3");
 
+    println!(
+        "Player {}: {} - {} - {}",
+        player_index, name, jersey_number, overall_rating
+    );
     // TODO: skibido
     // let player_svg = fs::read_to_string(format!("./player_svgs/{}.svg", player_index))?;
     // let svg_hash = Hash::of(player_svg.as_bytes()).await?;
@@ -167,6 +217,8 @@ fn gen_players(player_count: usize, std_dev: u8, median: u8, u: f64, v: f64) -> 
     let mut hash_u = u;
     let mut hash_v = v;
 
+    println!("Generating {} players", player_count);
+
     let mut players = Vec::new();
 
     for i in 0..player_count {
@@ -175,6 +227,7 @@ fn gen_players(player_count: usize, std_dev: u8, median: u8, u: f64, v: f64) -> 
 
         players.push(gen_player(i, std_dev, median, hash_u, hash_v));
     }
+    println!("Generated {} players", player_count);
 
     players
 }
