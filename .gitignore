@@ -18,4 +18,11 @@ target/
 # Misc
 .DS_Store
 .idea
+
+# dependencies
+/node_modules
+/.pnp
+.pnp.js
+.yarn/install-state.gz
+
 data/
