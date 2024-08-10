@@ -7,6 +7,9 @@ import Link from "next/link";
 import { useWriteContract } from "wagmi";
 import PLAYERS_ABI from "@/contracts/abi";
 import { ethers } from "ethers";
+const { randomBytes } = require("crypto");
+const secp256k1 = require("secp256k1");
+
 import {
   Card,
   CardHeader,
@@ -17,18 +20,52 @@ import {
 import { Button } from "@/components/ui/button";
 
 const plans = [
-  { name: "Platinum", price: ethers.parseEther("99") },
-  { name: "Gold", price: ethers.parseEther("49") },
-  { name: "Silver", price: ethers.parseEther("29") },
-  { name: "Bronze", price: ethers.parseEther("19") },
-  { name: "Wood", price: ethers.parseEther("9") },
+  { name: "Diamond", price: ethers.parseEther("99") },
+  { name: "Platinum", price: ethers.parseEther("49") },
+  { name: "Gold", price: ethers.parseEther("29") },
+  { name: "Silver", price: ethers.parseEther("19") },
+  { name: "Bronz", price: ethers.parseEther("9") },
 ];
 
-export default function Cards( { params }) {
+export default function Cards({ address }: { address: string }) {
+  // Set up contract interaction using Wagmi
+  const { config } = {
+    address,
+    abi: PLAYERS_ABI,
+    functionName: "requestPack",
+  });
+  
+  const { write } = useWriteContract(config);
   const { writeContract } = useWriteContract();
+  // Generate secp256k1 public key
+  const handlePurchase = (planName: string, price: bigint) => {
+    const privKey = Buffer.from(planName, "hex"); // Use a valid private key
+    const pubKey = secp256k1.publicKeyCreate(privKey, false).slice(1); // uncompressed key
 
-  const handlePurchase = (planName: string, price: number) => {
-    writeContract({ abi: PLAYERS_ABI, address: });
+    const pubKeyX = `0x${pubKey.slice(0, 32).toString("hex")}`;
+    const pubKeyY = `0x${pubKey.slice(32, 64).toString("hex")}`;
+    // generate message to sign
+    // message should have 32-byte length, if you have some other length you can hash message
+    // for example `msg = sha256(rawMessage)`
+    const msg = randomBytes(32);
+
+    // generate privKey
+   
+
+    writeContract({
+      abi: PLAYERS_ABI,
+      address: `0x${address}`,
+      functionName: "requestPack",
+      args: [
+        `0x${address}`,
+        planName, // Assume this is the packId, adapt as needed
+        1, // Assume 1 is the tier, adapt as needed
+        { x: pubKeyX, y: pubKeyY }, // secp256k1 public key
+      ],
+      overrides: {
+        value: price, // Send the price along with the transaction
+      },
+    });
   };
 
   return (
@@ -76,8 +113,7 @@ export default function Cards( { params }) {
     </div>
   );
 }
-{
-  /* <Card className="bg-[#e5e7eb]">
+/* <Card className="bg-[#e5e7eb]">
             <CardHeader className="bg-[#e5e7eb]">
               <CardTitle>Platinum</CardTitle>
             </CardHeader>
@@ -152,4 +188,3 @@ export default function Cards( { params }) {
     </div>
   );
 } */
-}
