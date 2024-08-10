@@ -51,7 +51,9 @@ contract Players is ERC721EnumerableURI, IPlayers {
 
         packId = currentPackId;
 
-        if (_pubKeys[msg.sender].x == 0 && _pubKeys[msg.sender].y == 0) {
+        bytes32 hashed = keccak256(abi.encode(key));
+
+        if (keccak256(abi.encode(_pubKeys[msg.sender])) != hashed) {
             _pubKeys[msg.sender] = key;
         }
 
