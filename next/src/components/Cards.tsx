@@ -33,8 +33,8 @@ export default function Cards({ address }: { address: string }) {
     address,
     abi: PLAYERS_ABI,
     functionName: "requestPack",
-  });
-  
+  };
+
   const { write } = useWriteContract(config);
   const { writeContract } = useWriteContract();
   // Generate secp256k1 public key
@@ -50,7 +50,7 @@ export default function Cards({ address }: { address: string }) {
     const msg = randomBytes(32);
 
     // generate privKey
-   
+
 
     writeContract({
       abi: PLAYERS_ABI,
