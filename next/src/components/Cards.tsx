@@ -42,9 +42,7 @@ export default function Cards({ address }: { address?: Address }) {
   const handleSignature = async (tier: Tier) => {
     setTier(tier);
     const message = `Purchase order for ${address}`;
-    console.log('SIGNING MESSAGE', message)
     const signature = await signMessageAsync({ message });
-    console.log('signature :>> ', signature);
     await handlePurchase(signature);
   }
 
@@ -53,6 +51,7 @@ export default function Cards({ address }: { address?: Address }) {
 
     const id = toast.loading("Processing purchase...");
     try {
+      // TODO: @arian this is the private key. Store it in context with persistance
       const privKeyBuff = createHash("sha256").update(signData).digest();
       const pubKey = secp256k1.publicKeyCreate(privKeyBuff, true); // uncompressed key
 
