@@ -3,7 +3,16 @@ name = "apps"
 version = { workspace = true }
 edition = { workspace = true }
 
+[[bin]]
+name = "publisher"
+path = "src/bin/publisher.rs"
+
+[[bin]]
+name = "listener"
+path = "src/bin/listener.rs"
+
 [dependencies]
+alloy = { version = "0.2.1", features = ["full"] }
 alloy-primitives = { workspace = true }
 alloy-sol-types = { workspace = true }
 anyhow = { workspace = true }

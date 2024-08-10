@@ -18,6 +18,9 @@ fs_permissions = [{ access = "read-write", path = "./" }]
 local = "http://127.0.0.1:8545/"
 sepolia = "${RPC_URL_SEPOLIA}"
 
+[etherscan]
+sepolia = { key = "${ETHERSCAN_API_KEY}", chain = "sepolia", url = "https://api-sepolia.etherscan.io/api/" }
+
 [fuzz]
 runs = 512
 
