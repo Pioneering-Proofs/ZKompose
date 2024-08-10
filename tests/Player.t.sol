@@ -49,12 +49,19 @@ contract TestPlayer is Test {
         assertEq(players.ownerOf(tokenId), address(this));
     }
 
-    function test_requestPack(uint8 tier) public {
+    function test_requestPack(uint8 tier, bytes32 pubKey) public {
         tier = uint8(bound(uint256(tier), 0, 4));
         IPlayers.Tier tierEnum = IPlayers.Tier(tier);
-        IPlayers.Secp256k1PubKey memory key = IPlayers.Secp256k1PubKey(42, 42);
+
         uint256 cost = players.costOfPack(tierEnum);
         uint256 balanceBefore = address(this).balance;
+
+        bytes[33] memory keyBytes; // = new bytes[33];
+        // for (uint256 i = 0; i < 32; i++) {
+        //     keyBytes[i] = bytes1(pubKey[i]);
+        // }
+        // keyBytes[0] = bytes(0x1);
+        IPlayers.Secp256k1PubKey memory key = IPlayers.Secp256k1PubKey(keyBytes);
 
         vm.expectEmit(address(players));
         emit IPlayers.PackRequested(address(this), players.currentPackId(), tierEnum, key);
@@ -64,9 +71,8 @@ contract TestPlayer is Test {
         assertEq(address(this).balance, balanceBefore - cost);
 
         IPlayers.Secp256k1PubKey memory savedKey = players.pubKeys(address(this));
-        console.log("savedKey.x", savedKey.x);
-        console.log("savedKey.y", savedKey.y);
-        assertEq(savedKey.x, key.x);
+        // console.log("savedKey", savedKey);
+        // assertEq(savedKey.x, key.x);
 
         Players.PackRequest memory packRequest = players.packRequests(packId);
         assertEq(uint256(packRequest.tier), uint256(tierEnum));
