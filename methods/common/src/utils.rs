@@ -1,5 +1,6 @@
-use super::types::{Coach, Player, Roster, Skills, Team};
+use super::types::{Coach, FileStats, Player, Roster, Skills, Team};
 use array_init::try_array_init;
+use ipfs_unixfs::{dir::builder::BufferingTreeBuilder, file::adder::FileAdder};
 use json::JsonValue;
 use std::{
     collections::HashSet,
@@ -7,11 +8,41 @@ use std::{
     hash::{Hash, Hasher},
 };
 
+////////////////////////////////////////////////////////////////////////
+/// IPFS Utils
+////////////////////////////////////////////////////////////////////////
+
+pub fn compute_cid(input: &[u8]) -> FileStats {
+    let mut adder = FileAdder::default();
+
+    let length = input.len();
+
+    for i in 0..length {
+        adder.push(&[input[i]]);
+    }
+
+    let blocks = adder.finish();
+    let mut stats = FileStats::default();
+    for (cid, block) in blocks {
+        stats.cid = Some(cid.to_string());
+        stats.blocks += 1;
+        stats.bytes += block.len() as u64;
+    }
+
+    stats
+}
+
+////////////////////////////////////////////////////////////////////////
+/// Serialization and Deserialization
+////////////////////////////////////////////////////////////////////////
+
 #[derive(Clone, Debug)]
 pub enum DecodingError {
     InvalidTeamSize,
     ReusedPlayer(Player),
     InvalidCoach,
+    MissingJsonField(&'static str),
+    UnknownError,
 }
 
 impl TryFrom<JsonValue> for Team {
@@ -30,18 +61,67 @@ impl TryFrom<JsonValue> for Team {
     }
 }
 
+/// Allows Player struct to be directly created from JSON String
+impl TryFrom<String> for Player {
+    type Error = DecodingError;
+
+    fn try_from(value: String) -> Result<Self, Self::Error> {
+        let json_parsed = json::parse(&value).unwrap();
+        match Player::try_from(json_parsed) {
+            Ok(mut player) => {
+                player.compute_cid(value.clone().to_string().as_bytes());
+                Ok(player)
+            }
+            Err(e) => Err(e),
+        }
+    }
+}
+
 impl TryFrom<JsonValue> for Player {
     type Error = DecodingError;
 
     fn try_from(value: JsonValue) -> Result<Self, Self::Error> {
-        Ok(Player {
-            token_id: value["token_id"].as_u32().expect("No token_id"),
-            cid: String::from(value["cid"].as_str().expect("No CID")),
-            skills: Skills::try_from(value["skills"].clone()).unwrap(),
-            skill_multiplier: value["skill_multiplier"]
-                .as_f32()
-                .expect("No skill_multiplier"),
-        })
+        let token_id = value["token_id"].as_u32();
+        let cid = match value["cid"].as_str() {
+            Some(cid) => Some(String::from(cid)),
+            None => None,
+        };
+        let name = value["name"].as_str();
+        let overall_rating = value["overall_rating"].as_u8();
+        let jersey_number = value["jersey_number"].as_u8();
+        let skills = Skills::try_from(value["skill"].clone());
+        let skill_multiplier = value["skill_multiplier"].as_f32();
+
+        // Try decoding as simple json
+        if token_id.is_some()
+            && skills.is_ok()
+            && skill_multiplier.is_some()
+            && name.is_some()
+            && overall_rating.is_some()
+            && jersey_number.is_some()
+        {
+            Ok(Player {
+                token_id: token_id.unwrap(),
+                cid,
+                name: String::from(name.unwrap()),
+                overall_rating: overall_rating.unwrap(),
+                jersey_number: jersey_number.unwrap(),
+                skills: skills.unwrap(),
+                skill_multiplier: skill_multiplier.unwrap(),
+            })
+        } else {
+            // if simple decoding fails, try parsing as NFT metadata
+            // TODO: Try parsing in other format
+            if token_id.is_none() {
+                Err(DecodingError::MissingJsonField("token_id"))
+            } else if skills.is_err() {
+                Err(DecodingError::MissingJsonField("skills"))
+            } else if skill_multiplier.is_none() {
+                Err(DecodingError::MissingJsonField("skill_multiplier"))
+            } else {
+                Err(DecodingError::UnknownError)
+            }
+        }
     }
 }
 
@@ -56,7 +136,7 @@ impl TryFrom<JsonValue> for Skills {
             dribbling: value["dribbling"].as_u8().expect("No dribbling"),
             defense: value["defense"].as_u8().expect("No defense"),
             physical: value["physical"].as_u8().expect("No physical"),
-            goal_tending: value["goalTending"].as_u8().expect("No goalTending"),
+            goal_tending: value["goal_tending"].as_u8().expect("No goal_tending"),
         })
     }
 }
