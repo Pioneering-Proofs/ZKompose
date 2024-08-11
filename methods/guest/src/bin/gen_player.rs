@@ -4,6 +4,7 @@ use array_init::array_init;
 use common::{
     math::new_u_v,
     types::{GenPlayersInput, GenPlayersJournal, Player},
+    utils::match_player_tier,
 };
 use risc0_zkvm::guest::env;
 use std::io::Read;

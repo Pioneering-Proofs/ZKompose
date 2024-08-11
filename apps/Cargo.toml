@@ -26,3 +26,4 @@ risc0-ethereum-contracts = { workspace = true }
 risc0-zkvm = { workspace = true, features = ["client"] }
 tokio = { version = "1.35", features = ["full"] }
 rand = "0.8.5"
+pinata-sdk = "1.1.0"
