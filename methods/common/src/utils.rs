@@ -55,8 +55,8 @@ impl TryFrom<JsonValue> for Team {
                 true => Some(String::from(value["logo"].as_str().unwrap())),
                 false => None,
             },
-            coach: Coach::try_from(value["coach"].clone()).unwrap(),
             roster: Roster::try_from(value["roster"].clone()).unwrap(),
+            team_rating: value["team_rating"].as_u8().expect("No team rating"),
         })
     }
 }
@@ -154,15 +154,15 @@ impl TryFrom<JsonValue> for Roster {
                 Ok(player)
             }
         };
-        let defenders = try_array_init(|n| check_player(n, "defenders")).unwrap();
-        let midfielders = try_array_init(|n| check_player(n, "midfielders")).unwrap();
-        let forwards = try_array_init(|n| check_player(n, "forwards")).unwrap();
+        let defense = try_array_init(|n| check_player(n, "defense")).unwrap();
+        let mid = try_array_init(|n| check_player(n, "mid")).unwrap();
+        let offense = try_array_init(|n| check_player(n, "offense")).unwrap();
 
         Ok(Roster {
-            goal_keeper: Player::try_from(value["goal_keeper"].clone()).unwrap(),
-            defenders,
-            midfielders,
-            forwards,
+            goal_tender: Player::try_from(value["goal_tender"].clone()).unwrap(),
+            defense,
+            mid,
+            offense,
         })
     }
 }

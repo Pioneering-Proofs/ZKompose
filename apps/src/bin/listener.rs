@@ -1,12 +1,13 @@
 use alloy::{
     network::{EthereumWallet, TransactionBuilder},
-    primitives::{address, Address},
+    primitives::{address, fixed_bytes, Address, FixedBytes},
     providers::{Provider, ProviderBuilder, WsConnect},
     rpc::types::{BlockNumberOrTag, Filter, TransactionRequest},
     signers::local::PrivateKeySigner,
     sol,
     sol_types::{SolEvent, SolInterface},
 };
+use alloy_primitives::U256;
 use clap::Parser;
 use common::types::{GenPlayersInput, GenPlayersJournal};
 use ethers::providers::StreamExt;
@@ -14,6 +15,7 @@ use methods::GEN_PLAYER_ELF;
 use rand::{thread_rng, Rng};
 use risc0_ethereum_contracts::groth16;
 use risc0_zkvm::{default_prover, serde, ExecutorEnv, Output, ProverOpts, VerifierContext};
+use tokio::task::spawn_blocking;
 
 sol! {
     interface IPlayers {
@@ -75,6 +77,16 @@ fn request_proof(input: GenPlayersInput) -> Option<(GenPlayersJournal, Vec<u8>)>
     Some((output, seal))
 }
 
+fn match_bytes(tier: FixedBytes<32>) -> u8 {
+    let tier: U256 = tier.into();
+    for i in 0..5 {
+        if tier == U256::from(i) {
+            return i;
+        }
+    }
+    0
+}
+
 #[tokio::main]
 async fn main() {
     let args = Args::parse();
@@ -85,7 +97,10 @@ async fn main() {
     let wallet = EthereumWallet::from(signer);
     let rpc_provider = {
         let ws = WsConnect::new(args.ws_url);
-        ProviderBuilder::new().wallet(wallet).on_ws(ws)
+        ProviderBuilder::new()
+            .with_recommended_fillers()
+            .wallet(wallet)
+            .on_ws(ws)
     };
     let rpc_provider = rpc_provider.await.expect("Failed to connect");
 
@@ -118,15 +133,23 @@ async fn main() {
                 println!("Pack requested by {requester} with packId {packId} of tier {tier}");
                 let u: f64 = thread_rng().gen_range(0..100) as f64;
                 let v: f64 = thread_rng().gen_range(0..5_000) as f64;
-                let (output, seal) = request_proof(GenPlayersInput {
-                    order_id: packId.wrapping_to::<u32>(),
-                    buyer_pubkey: "0x".to_string(),
-                    std_dev: 5,
-                    tier: tier.to_string().parse().unwrap(),
-                    u,
-                    v,
-                })
-                .unwrap();
+
+                let result = spawn_blocking(move || {
+                    let proof = request_proof(GenPlayersInput {
+                        order_id: packId.wrapping_to::<u32>(),
+                        buyer_pubkey: "0x".to_string(),
+                        std_dev: 5,
+                        tier: match_bytes(tier),
+                        u,
+                        v,
+                    });
+                    proof
+                });
+                let (output, seal) = result.await.unwrap().unwrap();
+
+                for cid in output.cids.iter() {
+                    println!("CID: {:?}", cid);
+                }
 
                 let call: IPlayers::fulfillPackOrderCall = IPlayers::fulfillPackOrderCall {
                     orderId: output.order_id,

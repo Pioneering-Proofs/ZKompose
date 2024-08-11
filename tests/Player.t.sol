@@ -10,6 +10,7 @@ import {IRiscZeroVerifier} from "risc0/IRiscZeroVerifier.sol";
 import {RiscZeroCheats} from "risc0/test/RiscZeroCheats.sol";
 
 import {Players, IPlayers} from "src/Players.sol";
+import {Elf} from "./Elf.sol";
 
 contract TestPlayer is RiscZeroCheats, Test {
 
@@ -36,30 +37,21 @@ contract TestPlayer is RiscZeroCheats, Test {
     //  Tests
     //  ─────────────────────────────────────────────────────────────────────────────
 
-    function test_requestPack(uint8 tier, bytes32 pubKey) public {
+    function test_requestPack(uint8 tier) public {
         tier = uint8(bound(uint256(tier), 0, 4));
         IPlayers.Tier tierEnum = IPlayers.Tier(tier);
 
         uint256 cost = players.costOfPack(tierEnum);
         uint256 balanceBefore = address(this).balance;
 
-        bytes[33] memory keyBytes; // = new bytes[33];
-        // for (uint256 i = 0; i < 32; i++) {
-        //     keyBytes[i] = bytes1(pubKey[i]);
-        // }
-        // keyBytes[0] = bytes(0x1);
-        IPlayers.Secp256k1PubKey memory key = IPlayers.Secp256k1PubKey(keyBytes);
 
         vm.expectEmit(address(players));
-        emit IPlayers.PackRequested(address(this), players.currentPackId(), tierEnum, key);
+        emit IPlayers.PackRequested(address(this), players.currentPackId(), tierEnum, );
 
-        uint256 packId = players.requestPack{value: cost}(tierEnum, key);
+        uint256 packId = players.requestPack{value: cost}(tierEnum);
 
         assertEq(address(this).balance, balanceBefore - cost);
 
-        IPlayers.Secp256k1PubKey memory savedKey = players.pubKeys(address(this));
-        // console.log("savedKey", savedKey);
-        // assertEq(savedKey.x, key.x);
 
         Players.PackRequest memory packRequest = players.packRequests(packId);
         assertEq(uint256(packRequest.tier), uint256(tierEnum));
@@ -67,7 +59,9 @@ contract TestPlayer is RiscZeroCheats, Test {
     }
 
     function test_cancel() public {}
-    function test_fulfill() public {}
+    function test_fulfill() public {
+        
+    }
 
     // function test_mintPlayer(bytes32 cid, uint256 tokenId) public {
     //     address owner;

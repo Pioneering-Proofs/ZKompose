@@ -59,10 +59,6 @@ contract Players is ERC721EnumerableURI, IPlayers {
     /// @notice Image ID of the fulfill pack order zkVM binary
     bytes32 public constant genPlayerImageId = ImageID.GEN_PLAYER_ID;
 
-    /// @notice Users commit secp256k1 (compressed) public keys to allow the fulfiller to encrypt certain
-    /// metadata fields
-    mapping(address holder => Secp256k1PubKey pubKeys) private _pubKeys;
-
     /// @notice Pack requests by ID
     mapping(uint256 packId => PackRequest packRequest) private _packRequests;
 
@@ -81,14 +77,6 @@ contract Players is ERC721EnumerableURI, IPlayers {
     //  ─────────────────────────────────────────────────────────────────────────────
 
     /// @inheritdoc IPlayers
-    function requestPack(Tier tier, Secp256k1PubKey calldata key) external payable returns (uint256 packId) {
-        bytes32 hashed = keccak256(abi.encode(key));
-        if (keccak256(abi.encode(_pubKeys[msg.sender])) != hashed) {
-            _pubKeys[msg.sender] = key;
-        }
-        return requestPack(tier);
-    }
-
     function requestPack(Tier tier) public payable returns (uint256 packId) {
         uint256 cost = costOfPack(tier);
         if (msg.value < cost) revert InsufficientFunds(cost, msg.value);
@@ -97,7 +85,7 @@ contract Players is ERC721EnumerableURI, IPlayers {
         _packRequests[packId] =
             PackRequest({tier: tier, timestamp: uint40(block.timestamp), requester: msg.sender});
 
-        emit PackRequested(msg.sender, packId, tier, _pubKeys[msg.sender]);
+        emit PackRequested(msg.sender, packId, tier);
 
         currentPackId++;
     }
@@ -134,16 +122,12 @@ contract Players is ERC721EnumerableURI, IPlayers {
 
     /// @inheritdoc IPlayers
     function costOfPack(Tier tier) public pure returns (uint256 cost) {
-        if (tier == Tier.Diamond) return 1 ether;
-        else if (tier == Tier.Platinum) return 0.5 ether;
-        else if (tier == Tier.Gold) return 0.25 ether;
-        else if (tier == Tier.Silver) return 0.1 ether;
-        else if (tier == Tier.Bronze) return 0.05 ether;
+        if (tier == Tier.Diamond) return 0.0005 ether;
+        else if (tier == Tier.Platinum) return 0.004 ether;
+        else if (tier == Tier.Gold) return 0.0003 ether;
+        else if (tier == Tier.Silver) return 0.0002 ether;
+        else if (tier == Tier.Bronze) return 0.0001 ether;
         else revert InvalidTier();
-    }
-
-    function pubKeys(address holder) public view returns (Secp256k1PubKey memory) {
-        return _pubKeys[holder];
     }
 
     function packRequests(uint256 packId) public view returns (PackRequest memory) {
