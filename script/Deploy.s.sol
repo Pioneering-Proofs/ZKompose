@@ -1,18 +1,4 @@
-// Copyright 2024 RISC Zero, Inc.
-//
-// Licensed under the Apache License, Version 2.0 (the "License");
-// you may not use this file except in compliance with the License.
-// You may obtain a copy of the License at
-//
-//     http://www.apache.org/licenses/LICENSE-2.0
-//
-// Unless required by applicable law or agreed to in writing, software
-// distributed under the License is distributed on an "AS IS" BASIS,
-// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-// See the License for the specific language governing permissions and
-// limitations under the License.
-//
-// SPDX-License-Identifier: Apache-2.0
+// SPDX-License-Identifier: MIT
 
 pragma solidity ^0.8.20;
 
@@ -49,6 +35,8 @@ contract EvenNumberDeploy is Script {
         uint256 chainId = block.chainid;
         console2.log("You are deploying on ChainID %d", chainId);
 
+        address fulfillerAddress;
+
         // Read the config profile from the environment variable, or use the default for the chainId.
         // Default is the first profile with a matching chainId field.
         string memory config = vm.readFile(string.concat(vm.projectRoot(), "/", CONFIG_FILE));
@@ -73,24 +61,10 @@ contract EvenNumberDeploy is Script {
                 stdToml.readAddress(config, string.concat(configProfileKey, ".riscZeroVerifierAddress"));
             // If set, use the predeployed verifier address found in the config.
             verifier = IRiscZeroVerifier(riscZeroVerifierAddress);
+
+            fulfillerAddress =
+                stdToml.readAddress(config, string.concat(configProfileKey, ".fulfillerAddress"));
         }
-
-        // Determine the wallet to send transactions from.
-        // uint256 deployerKey = uint256(vm.envOr("ETH_WALLET_PRIVATE_KEY", bytes32(0)));
-        // address deployerAddr = address(0);
-        // if (deployerKey != 0) {
-        //     // Check for conflicts in how the two environment variables are set.
-        //     address envAddr = vm.envOr("ETH_WALLET_ADDRESS", address(0));
-        //     require(
-        //         envAddr == address(0) || envAddr == vm.addr(deployerKey),
-        //         "conflicting settings from ETH_WALLET_PRIVATE_KEY and ETH_WALLET_ADDRESS"
-        //     );
-
-        //     vm.startBroadcast(deployerKey);
-        // } else {
-        //     deployerAddr = vm.envAddress("ETH_WALLET_ADDRESS");
-        //     vm.startBroadcast(deployerAddr);
-        // }
 
         vm.startBroadcast();
 
@@ -102,8 +76,18 @@ contract EvenNumberDeploy is Script {
             console2.log("Using IRiscZeroVerifier contract deployed at", address(verifier));
         }
 
+        if (address(fulfillerAddress) == address(0)) vm.envAddress("FULFILLER_ADDRESS");
+        if (address(fulfillerAddress) == address(0)) vm.envAddress("ETH_FROM");
+        if (address(fulfillerAddress) == address(0)) {
+            console2.log(
+                "No fulfiller address provided. Please set FULFILLER_ADDRESS or ETH_FROM env vars or add to config.toml."
+            );
+            vm.stopBroadcast();
+            return;
+        }
+
         // Deploy the application contract.
-        Players players = new Players();
+        Players players = new Players(verifier, fulfillerAddress);
         console2.log("Deployed Players to", address(players));
 
         Team team = new Team(verifier, players);

@@ -1,7 +1,6 @@
-use super::math::{calculate_tier, generate_max_rating, generate_skill_scores, hash_f64, hash_i32};
+use super::math::{calculate_tier, generate_max_rating, generate_skill_scores, hash_i32};
 use super::types::{
-    Attribute, CIDError, Coach, ContentAddressable, FileStats, Player, PlayerCreationParams,
-    PlayerJson, Roster, Skills, Team, Template,
+    Attribute, CIDError, ContentAddressable, FileStats, Player, PlayerJson, Skills,
 };
 use super::utils::compute_cid;
 use std::env;

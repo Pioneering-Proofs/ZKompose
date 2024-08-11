@@ -20,6 +20,6 @@ risc0-zkvm = { workspace = true, features = ["client"] }
 [dependencies]
 common = { path = "./common" }
 ipfs-unixfs = "0.2.0"
-risc0-steel = "0.11.1"
+risc0-steel = { version = "0.11.0" }
 json = "0.12"
 # serde = { version = "1.0", default-features = true, features = ["derive"] }

@@ -2,6 +2,9 @@
 
 pragma solidity ^0.8.24;
 
+import {IRiscZeroVerifier} from "risc0/IRiscZeroVerifier.sol";
+import {ImageID} from "./ImageID.sol";
+
 import {IPlayers} from "./interfaces/IPlayers.sol";
 
 import {ERC721EnumerableURI} from "./extensions/ERC721EnumerableURI.sol";
@@ -25,20 +28,53 @@ contract Players is ERC721EnumerableURI, IPlayers {
     }
 
     //  ─────────────────────────────────────────────────────────────────────────────
+    //  Custom Errors
+    //  ─────────────────────────────────────────────────────────────────────────────
+
+    /// @notice Reverted if caller is not the pack fulfiller.
+    error UnauthorizedFulfiller(address fulfiller);
+
+    /// @notice Reverted if pack order is not found.
+    error PackOrderNotFound(uint256 packId);
+
+    /// @notice Reverted if order is too new to cancel
+    error OrderTooNew(uint40 timestamp);
+
+    /// @notice Reverted if caller is not the pack requester.
+    error UnauthorizedCancel(address requester);
+
+    //  ─────────────────────────────────────────────────────────────────────────────
     //  Fields
     //  ─────────────────────────────────────────────────────────────────────────────
 
+    /// @notice Number of packs issued. NOT token ID counter
     uint256 public currentPackId;
 
+    /// @notice RISC Zero verifier contract address.
+    IRiscZeroVerifier public immutable verifier;
+
+    /// @notice Address permitted to fulfill pack order requests.
+    address public immutable packFulfiller;
+
+    /// @notice Image ID of the fulfill pack order zkVM binary
+    bytes32 public constant genPlayerImageId = ImageID.GEN_PLAYER_ID;
+
+    /// @notice Users commit secp256k1 (compressed) public keys to allow the fulfiller to encrypt certain
+    /// metadata fields
     mapping(address holder => Secp256k1PubKey pubKeys) private _pubKeys;
 
+    /// @notice Pack requests by ID
     mapping(uint256 packId => PackRequest packRequest) private _packRequests;
 
     //  ─────────────────────────────────────────────────────────────────────────────
     //  Setup
     //  ─────────────────────────────────────────────────────────────────────────────
 
-    constructor() ERC721("Players", "PLR") {}
+    /// @param _fulfiller The address able to fulfill pack requests.
+    constructor(IRiscZeroVerifier _verifier, address _fulfiller) ERC721("Players", "PLR") {
+        verifier = _verifier;
+        packFulfiller = _fulfiller;
+    }
 
     //  ─────────────────────────────────────────────────────────────────────────────
     //  Minting Functions
@@ -46,23 +82,54 @@ contract Players is ERC721EnumerableURI, IPlayers {
 
     /// @inheritdoc IPlayers
     function requestPack(Tier tier, Secp256k1PubKey calldata key) external payable returns (uint256 packId) {
+        bytes32 hashed = keccak256(abi.encode(key));
+        if (keccak256(abi.encode(_pubKeys[msg.sender])) != hashed) {
+            _pubKeys[msg.sender] = key;
+        }
+        return requestPack(tier);
+    }
+
+    function requestPack(Tier tier) public payable returns (uint256 packId) {
         uint256 cost = costOfPack(tier);
         if (msg.value < cost) revert InsufficientFunds(cost, msg.value);
 
         packId = currentPackId;
-
-        bytes32 hashed = keccak256(abi.encode(key));
-
-        if (keccak256(abi.encode(_pubKeys[msg.sender])) != hashed) {
-            _pubKeys[msg.sender] = key;
-        }
-
         _packRequests[packId] =
             PackRequest({tier: tier, timestamp: uint40(block.timestamp), requester: msg.sender});
 
-        emit PackRequested(msg.sender, packId, tier, key);
+        emit PackRequested(msg.sender, packId, tier, _pubKeys[msg.sender]);
 
         currentPackId++;
+    }
+
+    /// @inheritdoc IPlayers
+    function fulfillPackOrder(uint256 orderId, string[15] calldata URIs, bytes calldata seal) external {
+        if (msg.sender != packFulfiller) revert UnauthorizedFulfiller(msg.sender);
+
+        PackRequest storage request = _packRequests[orderId];
+        if (request.requester == address(0)) revert PackOrderNotFound(orderId);
+
+        bytes memory journal = abi.encode(request.tier, orderId, URIs);
+        verifier.verify(seal, genPlayerImageId, sha256(journal));
+
+        for (uint256 i = 0; i < 15; i++) {
+            _mint(request.requester, (orderId * 15) + i, URIs[i]);
+            currentPackId++;
+        }
+
+        delete _packRequests[orderId];
+    }
+
+    /// @inheritdoc IPlayers
+    function cancelOrder(uint256 orderId) external {
+        PackRequest storage request = _packRequests[orderId];
+        if (request.requester != msg.sender) revert UnauthorizedCancel(msg.sender);
+        if (request.timestamp + 1 days > block.timestamp) revert OrderTooNew(request.timestamp);
+
+        // NOTE: Delete before transfer to prevent re-entrancy. Important that this is done first.
+        delete _packRequests[orderId];
+
+        payable(msg.sender).transfer(costOfPack(request.tier));
     }
 
     /// @inheritdoc IPlayers

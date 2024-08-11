@@ -3,6 +3,7 @@
 pragma solidity ^0.8.24;
 
 import {IRiscZeroVerifier} from "risc0/IRiscZeroVerifier.sol";
+import {Steel} from "risc0/steel/Steel.sol";
 import {ImageID} from "./ImageID.sol";
 
 import {IPlayers} from "./interfaces/IPlayers.sol";
@@ -17,6 +18,16 @@ import {ERC721Holder} from "@openzeppelin/contracts/token/ERC721/utils/ERC721Hol
  * @author Kai Aldag
  */
 contract Team is ERC721Holder, ERC721EnumerableURI {
+
+    //  ─────────────────────────────────────────────────────────────────────────────
+    //  Types
+    //  ─────────────────────────────────────────────────────────────────────────────
+
+    struct Journal {
+        Steel.Commitment commitment;
+        bytes32 teamCID;
+        uint256[11] playerIds;
+    }
 
     //  ─────────────────────────────────────────────────────────────────────────────
     //  Custom Errors

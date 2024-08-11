@@ -739,10 +739,12 @@ dependencies = [
  "alloy-sol-types 0.6.4",
  "anyhow",
  "clap",
+ "common",
  "env_logger",
  "ethers",
  "log",
  "methods",
+ "rand",
  "risc0-ethereum-contracts",
  "risc0-zkvm",
  "tokio",
@@ -1508,8 +1510,19 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "8709d481fb78b9808f34a1b4b4fadd08a15a0971052c18bc2b751faefaed595e"
 dependencies = [
  "multibase",
- "multihash",
+ "multihash 0.11.4",
  "unsigned-varint 0.3.3",
+]
+
+[[package]]
+name = "cid"
+version = "0.11.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "3147d8272e8fa0ccd29ce51194dd98f79ddfb8191ba9e3409884e751798acf3a"
+dependencies = [
+ "core2",
+ "multihash 0.19.1",
+ "unsigned-varint 0.8.0",
 ]
 
 [[package]]
@@ -1646,11 +1659,14 @@ dependencies = [
 name = "common"
 version = "0.1.0"
 dependencies = [
+ "alloy-primitives 0.6.4",
  "array-init",
- "cid",
+ "cid 0.11.1",
  "ipfs-unixfs",
  "json",
+ "risc0-steel",
  "serde",
+ "serde_json",
  "sha2 0.10.8",
 ]
 
@@ -1711,6 +1727,15 @@ name = "core-foundation-sys"
 version = "0.8.6"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "06ea2b9bc92be3c2baa9334a323ebca2d6f074ff852cd1d7b11064035cd3868f"
+
+[[package]]
+name = "core2"
+version = "0.4.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "b49ba7ef1ad6107f8824dbe97de947cbaac53c44e7f9756a1fba0d37c1eec505"
+dependencies = [
+ "memchr",
+]
 
 [[package]]
 name = "cpufeatures"
@@ -3267,10 +3292,10 @@ version = "0.2.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "67d1cf65363f3d01682283456651d1cea436019de5be7a974bb61716c940d44f"
 dependencies = [
- "cid",
+ "cid 0.5.1",
  "either",
  "filetime",
- "multihash",
+ "multihash 0.11.4",
  "quick-protobuf",
  "sha2 0.9.9",
 ]
@@ -3651,6 +3676,16 @@ dependencies = [
  "sha2 0.9.9",
  "sha3 0.9.1",
  "unsigned-varint 0.5.1",
+]
+
+[[package]]
+name = "multihash"
+version = "0.19.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "076d548d76a0e2a0d4ab471d0b1c36c577786dfc4471242035d97a12a735c492"
+dependencies = [
+ "core2",
+ "unsigned-varint 0.7.2",
 ]
 
 [[package]]
@@ -5468,12 +5503,13 @@ dependencies = [
 
 [[package]]
 name = "serde_json"
-version = "1.0.117"
+version = "1.0.122"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "455182ea6142b14f93f4bc5320a2b31c1f266b66a4a5c858b013302a5d8cbfc3"
+checksum = "784b6203951c57ff748476b126ccb5e8e2959a5c19e5c617ab1956be3dbc68da"
 dependencies = [
  "indexmap 2.2.6",
  "itoa",
+ "memchr",
  "ryu",
  "serde",
 ]
@@ -6637,6 +6673,18 @@ name = "unsigned-varint"
 version = "0.5.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "f7fdeedbf205afadfe39ae559b75c3240f24e257d0ca27e85f85cb82aa19ac35"
+
+[[package]]
+name = "unsigned-varint"
+version = "0.7.2"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "6889a77d49f1f013504cec6bf97a2c730394adedaeb1deb5ea08949a50541105"
+
+[[package]]
+name = "unsigned-varint"
+version = "0.8.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "eb066959b24b5196ae73cb057f45598450d2c5f71460e98c49b738086eff9c06"
 
 [[package]]
 name = "untrusted"
