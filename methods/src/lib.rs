@@ -17,9 +17,9 @@ include!(concat!(env!("OUT_DIR"), "/methods.rs"));
 
 #[cfg(test)]
 mod tests {
-    use alloy_primitives::{address, Address, U256};
+    use alloy_primitives::{address, hex::deserialize, Address, U256, U8};
     use alloy_sol_types::SolValue;
-    use common::types::{Player, PlayerData, PlayerPosition, Skills, Team};
+    use common::types::{GenPlayersInput, Player, PlayerJson, Skills, Team};
     use json::{parse, stringify};
     use risc0_zkvm::{default_executor, guest::env::write_slice, serde, ExecutorEnv};
     use std::{env::current_dir, fs};
@@ -58,6 +58,57 @@ mod tests {
         let session_info = default_executor()
             .execute(env, super::BUILD_TEAM_ELF)
             .unwrap();
+    }
+
+    #[test]
+    fn player_cid() {
+        let current = current_dir().unwrap();
+        let file_name: String;
+        if current.ends_with("methods") {
+            file_name = "../data/players/0.json".to_string();
+        } else {
+            file_name = "../../data/players/0.json".to_string();
+        }
+        let player_data =
+            fs::read_to_string(file_name).expect("Should have been able to read the file");
+        let player = Player::try_from(player_data).unwrap();
+        println!("Player data: {:?}", player);
+    }
+
+    #[test]
+    fn prove_gen_players() {
+        // let player_count = U8::from(10);
+        // let std_dev = U8::from(10);
+        // let median = U8::from(50);
+        let input = GenPlayersInput {
+            buyer_pubkey: "".to_string(),
+            order_id: 0,
+            std_dev: 10,
+            median: 50,
+            u: 3.14159,
+            v: 2123.71828,
+        };
+
+        let env = ExecutorEnv::builder()
+            .write(&input)
+            .expect("Invalid input")
+            .build()
+            .unwrap();
+
+        let session_info = default_executor()
+            .execute(env, super::GEN_PLAYER_ELF)
+            .unwrap();
+
+        println!("Generated players: {:?}", session_info.journal.bytes);
+
+        let CIDs: [String; 15] = serde::from_slice(&session_info.journal.bytes)
+            .expect("Failed to decode players from guest");
+
+        println!("Player data: {:?}", CIDs.len());
+
+        for cid in CIDs.iter() {
+            println!("CID: {:?}", cid);
+        }
     }
 
     #[test]

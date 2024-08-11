@@ -1,0 +1,61 @@
+{
+  "name": "NAME",
+  "jersey_number": JERSEY_NUMBER,
+  "description": "Number JERSEY_NUMBER NAME. Overall rating of OVERALL_RATING.",
+  "external_url": "EXTERNAL_URL",
+  "image": "IMAGE_URI",
+  "tier": TIER,
+  "overall_rating": OVERALL_RATING,
+  "skill_multiplier": SKILL_MULTIPLIER,
+  "skill": {
+    "speed": SPEED,
+    "shooting": SHOOTING,
+    "passing": PASSING,
+    "dribbling": DRIBBLING,
+    "defense": DEFENSE,
+    "physical": PHYSICAL,
+    "goal_tending": GOAL_TENDING,
+  },
+  "attributes": [
+    {
+      "display_type": "skill_multiplier",
+      "trait_type": "Skill Multiplier",
+      "value": SKILL_MULTIPLIER
+    },
+    {
+      "display_type": "speed",
+      "trait_type": "Speed",
+      "value": SPEED
+    },
+    {
+      "display_type": "shooting",
+      "trait_type": "Shooting",
+      "value": SHOOTING
+    },
+    {
+      "display_type": "passing",
+      "trait_type": "Passing",
+      "value": PASSING
+    },
+    {
+      "display_type": "dribbling",
+      "trait_type": "Dribbling",
+      "value": DRIBBLING
+    },
+    {
+      "display_type": "defense",
+      "trait_type": "Defense",
+      "value": DEFENSE
+    },
+    {
+      "display_type": "physical",
+      "trait_type": "Physical Strength",
+      "value": PHYSICAL
+    },
+    {
+      "display_type": "goal_tending",
+      "trait_type": "Goal Tending",
+      "value": GOAL_TENDING
+    }
+  ]
+}

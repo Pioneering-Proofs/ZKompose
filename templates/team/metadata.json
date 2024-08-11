@@ -1,0 +1,113 @@
+{
+  "name": "Team NFT Test",
+  "logo_uri": "./logo.svg",
+  "owner": "0x",
+  "team_rating": 87,
+  "roster": {
+    "goal_tender": {
+      "cid": "Qm...",
+      "token_id": 1,
+      "name": "Casillas",
+      "img_uri": "./player.svg",
+      "overall_rating": 90,
+      "jersey_number": 1,
+      "tier": 1
+    },
+    "defense": [
+      {
+        "cid": "Qm...",
+        "token_id": 2,
+        "name": "Puyol",
+        "img_uri": "./player.svg",
+        "overall_rating": 85,
+        "jersey_number": 5,
+        "tier": 2
+      },
+      {
+        "cid": "Qm...",
+        "token_id": 3,
+        "name": "Cannavaro",
+        "img_uri": "./player.svg",
+        "overall_rating": 88,
+        "jersey_number": 6,
+        "tier": 4
+      },
+      {
+        "cid": "Qm...",
+        "token_id": 4,
+        "name": "Maldini",
+        "img_uri": "./player.svg",
+        "overall_rating": 90,
+        "jersey_number": 3,
+        "tier": 0
+      },
+      {
+        "cid": "Qm...",
+        "token_id": 5,
+        "name": "Cafu",
+        "img_uri": "./player.svg",
+        "overall_rating": 86,
+        "jersey_number": 2,
+        "tier": 3
+      }
+    ],
+    "mid": [
+      {
+        "cid": "Qm...",
+        "token_id": 6,
+        "name": "Zidane",
+        "img_uri": "./player.svg",
+        "overall_rating": 89,
+        "jersey_number": 5,
+        "tier": 0
+      },
+      {
+        "cid": "Qm...",
+        "token_id": 7,
+        "name": "Xavi",
+        "img_uri": "./player.svg",
+        "overall_rating": 87,
+        "jersey_number": 6,
+        "tier": 1
+      },
+      {
+        "cid": "Qm...",
+        "token_id": 8,
+        "name": "Iniesta",
+        "img_uri": "./player.svg",
+        "overall_rating": 88,
+        "jersey_number": 8,
+        "tier": 0
+      }
+    ],
+    "offense": [
+      {
+        "cid": "Qm...",
+        "token_id": 9,
+        "name": "Ronaldo",
+        "img_uri": "./player.svg",
+        "overall_rating": 92,
+        "jersey_number": 7,
+        "tier": 0
+      },
+      {
+        "cid": "Qm...",
+        "token_id": 10,
+        "name": "Messi",
+        "img_uri": "./player.svg",
+        "overall_rating": 93,
+        "jersey_number": 10,
+        "tier": 0
+      },
+      {
+        "cid": "Qm...",
+        "token_id": 11,
+        "name": "Ronaldinho",
+        "img_uri": "./player.svg",
+        "overall_rating": 90,
+        "jersey_number": 11,
+        "tier": 0
+      }
+    ]
+  }
+}

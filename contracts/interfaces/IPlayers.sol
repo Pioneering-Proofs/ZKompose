@@ -36,10 +36,9 @@ interface IPlayers is IERC721 {
         Bronze
     }
 
-    /// @notice Simple eliptic curve point
+    /// @notice Represents a secp256k1 compressed public key
     struct Secp256k1PubKey {
-        uint256 x;
-        uint256 y;
+        bytes[33] key;
     }
 
     //  ─────────────────────────────────────────────────────────────────────────────

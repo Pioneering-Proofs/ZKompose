@@ -5,7 +5,7 @@ use alloy_sol_types::{sol, SolValue};
 use json::parse;
 use risc0_zkvm::guest::env;
 
-use common::types::{Player, PlayerData, Skills, Team};
+use common::types::{Player, Skills, Team};
 
 /// Alloy interface to use for verifying on-chain state
 sol! {
