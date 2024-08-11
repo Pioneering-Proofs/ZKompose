@@ -1,18 +1,16 @@
 use alloy::{
     network::{EthereumWallet, TransactionBuilder},
-    primitives::{address, fixed_bytes, Address, FixedBytes},
+    primitives::{address, fixed_bytes, Address, FixedBytes, U256},
     providers::{Provider, ProviderBuilder, WsConnect},
     rpc::types::{BlockNumberOrTag, Filter, TransactionRequest},
     signers::local::PrivateKeySigner,
     sol,
     sol_types::{SolEvent, SolInterface, SolValue},
 };
-use alloy_primitives::U256;
-use alloy_sol_types::{sol, SolValue};
 use clap::Parser;
 use common::{
     math::new_u_v,
-    types::{GenPlayersInput, GenPlayersJournal, Player},
+    types::{GenPlayersJournal, Player},
     utils::match_player_tier,
 };
 use ethers::providers::StreamExt;
@@ -33,12 +31,22 @@ sol! {
             Bronze
         }
 
-        struct Secp256k1PubKey {
-            bytes[33] key;
-        }
+        event PackRequested(address indexed requester, uint256 indexed packId, Tier indexed tier);
+        function fulfillPackOrder(uint256 orderId, bytes32[15] calldata URIs, bytes calldata seal) external;
+    }
 
-        event PackRequested(address indexed requester, uint256 indexed packId, Tier indexed tier, Secp256k1PubKey key);
-        function fulfillPackOrder(uint256 orderId, string[15] calldata URIs, bytes calldata seal) external;
+    struct Input {
+        uint8 tier;
+        uint256 order_id;
+        uint8 std_dev;
+        uint256 u;
+        uint256 v;
+    }
+
+    struct Journal {
+        uint8 tier;
+        uint256 order_id;
+        bytes32[15] cids;
     }
 }
 
@@ -58,7 +66,7 @@ struct Args {
     priv_key: String,
 }
 
-fn request_proof(input: Vec<u8>) -> Option<(GenPlayersJournal, Vec<u8>)> {
+async fn request_proof(input: Vec<u8>) -> Option<(Journal, Vec<u8>)> {
     let env = ExecutorEnv::builder()
         .write_slice(&input)
         // .unwrap()
@@ -76,13 +84,14 @@ fn request_proof(input: Vec<u8>) -> Option<(GenPlayersJournal, Vec<u8>)> {
         .receipt;
     let seal = groth16::encode(receipt.inner.groth16().ok()?.seal.clone()).unwrap();
     let journal = receipt.journal.bytes.clone();
+    let input = Input::abi_decode(&input, true).expect("Failed to decode input");
 
     let output: GenPlayersJournal = serde::from_slice(&journal).expect("Failed to decode output");
     let cids = output.cids.clone();
 
     let median = match_player_tier(input.tier);
-    let mut u = input.u;
-    let mut v = input.v;
+    let mut u = input.u.to::<u32>() as f64;
+    let mut v = input.v.to::<u32>() as f64;
     let pinata_api_key = std::env::var("PINATA_API_KEY").unwrap();
     let pinata_secret_api_key = std::env::var("PINATA_SECRET_API_KEY").unwrap();
     let pinata = PinataApi::new(pinata_api_key, pinata_secret_api_key).unwrap();
@@ -90,11 +99,11 @@ fn request_proof(input: Vec<u8>) -> Option<(GenPlayersJournal, Vec<u8>)> {
     for i in 0..15 {
         (u, v) = new_u_v(u, v);
         let player = Player::new(
-            (input.order_id * 15) + i as u32,
+            (input.order_id.to::<u32>() * 15) + i as u32,
             input.std_dev,
             median,
-            input.u,
-            input.v,
+            u,
+            v,
         );
 
         if player.cid() != cids[i] {
@@ -121,22 +130,6 @@ fn match_bytes(tier: FixedBytes<32>) -> u8 {
         }
     }
     0
-}
-
-sol! {
-    struct Input {
-        uint8 tier;
-        uint256 order_id;
-        uint8 std_dev;
-        uint256 u;
-        uint256 v;
-    }
-
-    struct Journal {
-        uint8 tier;
-        uint256 order_id;
-        bytes32[15] cids;
-    }
 }
 
 #[tokio::main]
@@ -180,7 +173,6 @@ async fn main() {
                     requester,
                     packId,
                     tier,
-                    key: _,
                 } = log.log_decode().unwrap().inner.data;
                 println!("Pack requested by {requester} with packId {packId} of tier {tier}");
                 let u: u32 = thread_rng().gen_range(0..100);

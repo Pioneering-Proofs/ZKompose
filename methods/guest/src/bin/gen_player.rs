@@ -9,17 +9,6 @@ use common::{
 use risc0_zkvm::guest::env;
 use std::io::Read;
 
-fn match_player_tier(tier: u8) -> u8 {
-    match tier {
-        0 => 90,
-        1 => 80,
-        2 => 70,
-        3 => 60,
-        4 => 60,
-        _ => 60,
-    }
-}
-
 sol! {
     struct Input {
         uint8 tier;

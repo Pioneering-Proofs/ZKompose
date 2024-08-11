@@ -31,7 +31,7 @@ sol! {
 }
 
 const PLAYER_CONTRACT_ADDRESS: Address = address!("74bf0b8f065aa2627ea25c6a07cba79407ae7265");
-const TEAM_CONTRACT_ADDRESS: Address = address!("4157393c6f3c4ce2826d3e1bd155c3aa2d658381");
+const TEAM_CONTRACT_ADDRESS: Address = address!("b507B268BF896a65Eb1B9b4176eD65ab4a91604D");
 
 fn main() {
     // TODO: Signature of owner will need to be provided to ensure this operation is authorized
