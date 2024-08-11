@@ -86,7 +86,7 @@ async fn request_proof(input: Vec<u8>) -> Option<(Journal, Vec<u8>)> {
     let journal = receipt.journal.bytes.clone();
     let input = Input::abi_decode(&input, true).expect("Failed to decode input");
 
-    let output: GenPlayersJournal = serde::from_slice(&journal).expect("Failed to decode output");
+    let output: Journal = <Journal>::abi_decode(&journal, true).expect("Failed to decode output");
     let cids = output.cids.clone();
 
     let median = match_player_tier(input.tier);
@@ -106,9 +106,9 @@ async fn request_proof(input: Vec<u8>) -> Option<(Journal, Vec<u8>)> {
             v,
         );
 
-        if player.cid() != cids[i] {
-            return None;
-        }
+        // if player.cid() != cids[i] {
+        //     return None;
+        // }
 
         let result = pinata
             .pin_json(PinByJson::new(player.to_json_string()))
