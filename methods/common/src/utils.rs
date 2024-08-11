@@ -6,6 +6,7 @@ use std::{
     collections::HashSet,
     convert::TryFrom,
     hash::{Hash, Hasher},
+    io::Read,
 };
 
 ////////////////////////////////////////////////////////////////////////
@@ -24,6 +25,7 @@ pub fn compute_cid(input: &[u8]) -> FileStats {
     let blocks = adder.finish();
     let mut stats = FileStats::default();
     for (cid, block) in blocks {
+        // [18, 32, 220, 232, 214, 52, 213, 200, 177, 163, 3, 84, 141, 30, 88, 42, 34, 45, 50, 100, 19, 248, 7, 94, 22, 62, 7, 10, 14, 149, 143, 160, 50, 5]
         stats.cid = Some(cid.to_string());
         stats.blocks += 1;
         stats.bytes += block.len() as u64;
@@ -31,6 +33,29 @@ pub fn compute_cid(input: &[u8]) -> FileStats {
 
     stats
 }
+
+// pub fn compute_hash(input: &[u8]) -> [u8; 32] {
+//     let mut adder = FileAdder::default();
+
+//     let length = input.len();
+
+//     for i in 0..length {
+//         adder.push(&[input[i]]);
+//     }
+
+//     let blocks = adder.finish();
+//     let mut stats = FileStats::default();
+//     let mut result;
+//     for (cid, block) in blocks {
+//         // [18, 32, 220, 232, 214, 52, 213, 200, 177, 163, 3, 84, 141, 30, 88, 42, 34, 45, 50, 100, 19, 248, 7, 94, 22, 62, 7, 10, 14, 149, 143, 160, 50, 5]
+//         result = cid;
+//         stats.cid = Some(cid.to_string());
+//         stats.blocks += 1;
+//         stats.bytes += block.len() as u64;
+//     }
+
+//     result.hash().bytes().try_into().unwrap()
+// }
 
 ////////////////////////////////////////////////////////////////////////
 /// Serialization and Deserialization

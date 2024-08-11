@@ -7,6 +7,7 @@ import {ERC721Enumerable} from "@openzeppelin/contracts/token/ERC721/extensions/
 import {Strings} from "@openzeppelin/contracts/utils/Strings.sol";
 import {IERC4906} from "@openzeppelin/contracts/interfaces/IERC4906.sol";
 import {IERC165} from "@openzeppelin/contracts/interfaces/IERC165.sol";
+import {Base58} from "Base58/Base58.sol";
 
 abstract contract ERC721EnumerableURI is ERC721Enumerable, IERC4906 {
 
@@ -21,7 +22,7 @@ abstract contract ERC721EnumerableURI is ERC721Enumerable, IERC4906 {
     bytes4 private constant ERC4906_INTERFACE_ID = bytes4(0x49064906);
 
     // Optional mapping for token URIs
-    mapping(uint256 tokenId => string) private _tokenURIs;
+    mapping(uint256 tokenId => bytes32) private _tokenCIDs;
 
     //  ──────────────────────────  Player View Functions  ──────────────────────────  \\
 
@@ -31,16 +32,12 @@ abstract contract ERC721EnumerableURI is ERC721Enumerable, IERC4906 {
     function tokenURI(uint256 tokenId) public view override returns (string memory) {
         _requireOwned(tokenId);
 
-        string memory _tokenURI = _tokenURIs[tokenId];
+        bytes32 _tokenCID = _tokenCIDs[tokenId];
         string memory base = _baseURI();
 
-        // If there is no base URI, return the token URI.
-        if (bytes(base).length == 0) {
-            return _tokenURI;
-        }
         // If both are set, concatenate the baseURI and tokenURI (via string.concat).
-        if (bytes(_tokenURI).length > 0) {
-            return string.concat(base, _tokenURI);
+        if (_tokenCID != bytes32(0x0)) {
+            return string.concat(base, cidv0(_tokenCID));
         }
 
         return super.tokenURI(tokenId);
@@ -70,17 +67,36 @@ abstract contract ERC721EnumerableURI is ERC721Enumerable, IERC4906 {
      *
      * Emits {MetadataUpdate}.
      */
-    function _setTokenURI(uint256 tokenId, string memory _tokenURI) internal virtual {
-        _tokenURIs[tokenId] = _tokenURI;
+    function _setTokenURI(uint256 tokenId, bytes32 _tokenCID) internal virtual {
+        _tokenCIDs[tokenId] = _tokenCID;
         emit MetadataUpdate(tokenId);
     }
 
     /**
      * @dev Mints and sets a token URI
      */
-    function _mint(address to, uint256 tokenId, string memory _tokenURI) internal virtual {
+    function _mint(address to, uint256 tokenId, bytes32 _tokenCID) internal virtual {
         _mint(to, tokenId);
-        _setTokenURI(tokenId, _tokenURI);
+        _setTokenURI(tokenId, _tokenCID);
+    }
+
+    //  ─────────────────────────────────────────────────────────────────────────────
+    //  Encoding
+    //  ─────────────────────────────────────────────────────────────────────────────
+
+    function cidv0(bytes32 sha256Hash) internal pure returns (string memory) {
+        bytes memory hashString = new bytes(34);
+        hashString[0] = 0x12;
+        hashString[1] = 0x20;
+        uint256 hashLength = sha256Hash.length;
+        for (uint256 i = 0; i < hashLength; ++i) {
+            hashString[i + 2] = sha256Hash[i];
+        }
+        return Base58.encodeToString(hashString);
+    }
+
+    function _baseURI() internal pure override returns (string memory) {
+        return "ipfs://";
     }
 
     //  ─────────────────────────────────────────────────────────────────────────────

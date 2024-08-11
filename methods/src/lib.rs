@@ -17,12 +17,18 @@ include!(concat!(env!("OUT_DIR"), "/methods.rs"));
 
 #[cfg(test)]
 mod tests {
-    use alloy_primitives::{address, U256};
+    use alloy_primitives::{address, hex::ToHex, U256};
     use alloy_sol_types::SolValue;
-    use common::types::{GenPlayersInput, GenPlayersJournal, Player, PlayerJson, Skills, Team};
+    use cid::Cid;
+    use common::types::{
+        GenPlayersInput, GenPlayersJournal, GenTeamInput, Player, PlayerJson, Roster, Skills, Team,
+    };
     use json::{parse, stringify};
-    use risc0_zkvm::{default_executor, guest::env::write_slice, serde, ExecutorEnv};
-    use std::{env::current_dir, fs};
+    use risc0_zkvm::{
+        default_executor, default_prover, guest::env::write_slice, serde, ExecutorEnv, ProverOpts,
+        VerifierContext,
+    };
+    use std::{env::current_dir, fs, io::Read};
 
     #[test]
     fn prove_build_team() {
@@ -83,7 +89,6 @@ mod tests {
     #[test]
     fn prove_gen_players() {
         let input = GenPlayersInput {
-            buyer_pubkey: "".to_string(),
             order_id: 42,
             std_dev: 10,
             tier: 1,
@@ -111,8 +116,36 @@ mod tests {
         println!("Order ID: {}", output.order_id);
 
         for cid in output.cids.iter() {
-            println!("CID: {:?}", cid);
+            let bytes = cid.0;
+            let mut hex = String::new();
+            for byte in bytes {
+                hex.push_str(&format!("{:02x}", byte));
+            }
+            println!("CID: {:?}", hex);
+            // for byte in cid.iter() {
+            //     print!("{:02x}", byte);
+            // }
         }
+
+        // let env = ExecutorEnv::builder()
+        //     .write(&input)
+        //     .expect("Invalid input")
+        //     .build()
+        //     .unwrap();
+
+        // let prover = default_prover();
+        // let receipt = prover
+        //     .prove_with_ctx(
+        //         env,
+        //         &VerifierContext::default(),
+        //         super::GEN_PLAYER_ELF,
+        //         &ProverOpts::groth16(),
+        //     )
+        //     .unwrap()
+        //     .receipt;
+        // receipt.verify(super::GEN_PLAYER_ID).unwrap();
+
+        // println!("Proof verified");
     }
 
     #[test]

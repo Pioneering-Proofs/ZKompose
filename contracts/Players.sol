@@ -91,7 +91,7 @@ contract Players is ERC721EnumerableURI, IPlayers {
     }
 
     /// @inheritdoc IPlayers
-    function fulfillPackOrder(uint256 orderId, string[15] calldata URIs, bytes calldata seal) external {
+    function fulfillPackOrder(uint256 orderId, bytes32[15] calldata URIs, bytes calldata seal) external {
         if (msg.sender != packFulfiller) revert UnauthorizedFulfiller(msg.sender);
 
         PackRequest storage request = _packRequests[orderId];
@@ -142,15 +142,7 @@ contract Players is ERC721EnumerableURI, IPlayers {
     function mintPlayer(uint256 tokenId, bytes32 cid) public payable {
         if (_ownerOf(tokenId) != address(0)) revert ERC721AlreadyMinted(tokenId);
 
-        _mint(msg.sender, tokenId, string(abi.encodePacked(cid)));
-    }
-
-    //  ─────────────────────────────────────────────────────────────────────────────
-    //  Internal Utils
-    //  ─────────────────────────────────────────────────────────────────────────────
-
-    function _baseURI() internal pure override returns (string memory) {
-        return "ipfs://";
+        _mint(msg.sender, tokenId, cid);
     }
 
 }

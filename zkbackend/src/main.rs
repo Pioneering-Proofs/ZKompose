@@ -33,7 +33,6 @@ fn index() -> &'static str {
 fn gen_player(req_body: Json<PlayerRequestBody>) -> Json<Vec<PlayerJson>> {
     let input = GenPlayersInput {
         order_id: req_body.order_id,
-        buyer_pubkey: "".to_string(),
         std_dev: 5,
         tier: req_body.tier,
         u: req_body.u,

@@ -1,17 +1,13 @@
 [profile.mainnet]
-# RISC Zero Verifier contract deployed on mainnet (see https://dev.risczero.com/api/blockchain-integration/contracts/verifier#deployed-verifiers)
 chainId = 1
 riscZeroVerifierAddress = "0x8EaB2D97Dfce405A1692a21b3ff3A172d593D319"
 
 [profile.sepolia]
-# RISC Zero Verifier contract deployed on sepolia (see https://dev.risczero.com/api/blockchain-integration/contracts/verifier#deployed-verifiers)
 chainId = 11155111
 riscZeroVerifierAddress = "0x925d8331ddc0a1F0d96E68CF073DFE1d92b69187"
 fulfillerAddress = "0xFF384A7f31c674B1E6119087fD4F30A333335d4f"
-playersAddress = "0xfAa746C91B8704BF52ba0aF84ded324fAEf37A7c"
+playersAddress = "0xB59612143d5DE1CFdd0403459B35D8A2CC73164F"
 
-# You can add additional profiles here
 [profile.local]
 chainId = 31337
 fulfillerAddress = "0xFF384A7f31c674B1E6119087fD4F30A333335d4f"
-# riscZeroVerifierAddress =

@@ -5,9 +5,10 @@ use alloy::{
     rpc::types::{BlockNumberOrTag, Filter, TransactionRequest},
     signers::local::PrivateKeySigner,
     sol,
-    sol_types::{SolEvent, SolInterface},
+    sol_types::{SolEvent, SolInterface, SolValue},
 };
 use alloy_primitives::U256;
+use alloy_sol_types::{sol, SolValue};
 use clap::Parser;
 use common::types::{GenPlayersInput, GenPlayersJournal};
 use ethers::providers::StreamExt;
@@ -52,10 +53,10 @@ struct Args {
     priv_key: String,
 }
 
-fn request_proof(input: GenPlayersInput) -> Option<(GenPlayersJournal, Vec<u8>)> {
+fn request_proof(input: Vec<u8>) -> Option<(GenPlayersJournal, Vec<u8>)> {
     let env = ExecutorEnv::builder()
-        .write(&input)
-        .unwrap()
+        .write_slice(&input)
+        // .unwrap()
         .build()
         .unwrap();
 
@@ -87,11 +88,27 @@ fn match_bytes(tier: FixedBytes<32>) -> u8 {
     0
 }
 
+sol! {
+    struct Input {
+        uint8 tier;
+        uint256 order_id;
+        uint8 std_dev;
+        uint256 u;
+        uint256 v;
+    }
+
+    struct Journal {
+        uint8 tier;
+        uint256 order_id;
+        bytes32[15] cids;
+    }
+}
+
 #[tokio::main]
 async fn main() {
     let args = Args::parse();
 
-    let player_contract: Address = address!("fAa746C91B8704BF52ba0aF84ded324fAEf37A7c");
+    let player_contract: Address = address!("B59612143d5DE1CFdd0403459B35D8A2CC73164F");
 
     let signer: PrivateKeySigner = args.priv_key.clone().parse().expect("Invalid private key");
     let wallet = EthereumWallet::from(signer);
@@ -131,18 +148,20 @@ async fn main() {
                     key: _,
                 } = log.log_decode().unwrap().inner.data;
                 println!("Pack requested by {requester} with packId {packId} of tier {tier}");
-                let u: f64 = thread_rng().gen_range(0..100) as f64;
-                let v: f64 = thread_rng().gen_range(0..5_000) as f64;
+                let u: u32 = thread_rng().gen_range(0..100);
+                let v: u32 = thread_rng().gen_range(0..5_000);
 
                 let result = spawn_blocking(move || {
-                    let proof = request_proof(GenPlayersInput {
-                        order_id: packId.wrapping_to::<u32>(),
-                        buyer_pubkey: "0x".to_string(),
-                        std_dev: 5,
-                        tier: match_bytes(tier),
-                        u,
-                        v,
-                    });
+                    let proof = request_proof(
+                        Input {
+                            tier: match_bytes(tier),
+                            order_id: U256::from(packId),
+                            std_dev: 5,
+                            u: U256::from(u),
+                            v: U256::from(v),
+                        }
+                        .abi_encode(),
+                    );
                     proof
                 });
                 let (output, seal) = result.await.unwrap().unwrap();
