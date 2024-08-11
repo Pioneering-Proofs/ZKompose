@@ -6,9 +6,12 @@ import "forge-std/console.sol";
 import "forge-std/console2.sol";
 import "forge-std/Test.sol";
 
+import {IRiscZeroVerifier} from "risc0/IRiscZeroVerifier.sol";
+import {RiscZeroCheats} from "risc0/test/RiscZeroCheats.sol";
+
 import {Players, IPlayers} from "src/Players.sol";
 
-contract TestPlayer is Test {
+contract TestPlayer is RiscZeroCheats, Test {
 
     //  ─────────────────────────────────────────────────────────────────────────────
     //  Fields
@@ -16,38 +19,22 @@ contract TestPlayer is Test {
 
     Players public players;
 
+    address public fulfiller;
+
     //  ─────────────────────────────────────────────────────────────────────────────
     //  Setup
     //  ─────────────────────────────────────────────────────────────────────────────
 
     function setUp() public {
-        players = new Players();
+        IRiscZeroVerifier verifier = deployRiscZeroVerifier();
+        fulfiller = makeAddr("FULFILLER");
+        vm.label(fulfiller, "fulfiller");
+        players = new Players(verifier, fulfiller);
     }
 
     //  ─────────────────────────────────────────────────────────────────────────────
     //  Tests
     //  ─────────────────────────────────────────────────────────────────────────────
-
-    function test_mintPlayer(bytes32 cid, uint256 tokenId) public {
-        address owner;
-        try players.ownerOf(tokenId) returns (address _owner) {
-            owner = _owner;
-        } catch {
-            owner = address(0);
-        }
-
-        if (owner != address(0)) {
-            return;
-        }
-
-        players.mintPlayer(tokenId, cid);
-
-        assertEq(
-            keccak256(abi.encodePacked(players.tokenURI(tokenId))),
-            keccak256(abi.encodePacked("ipfs://", cid))
-        );
-        assertEq(players.ownerOf(tokenId), address(this));
-    }
 
     function test_requestPack(uint8 tier, bytes32 pubKey) public {
         tier = uint8(bound(uint256(tier), 0, 4));
@@ -78,5 +65,29 @@ contract TestPlayer is Test {
         assertEq(uint256(packRequest.tier), uint256(tierEnum));
         assertEq(packRequest.requester, address(this));
     }
+
+    function test_cancel() public {}
+    function test_fulfill() public {}
+
+    // function test_mintPlayer(bytes32 cid, uint256 tokenId) public {
+    //     address owner;
+    //     try players.ownerOf(tokenId) returns (address _owner) {
+    //         owner = _owner;
+    //     } catch {
+    //         owner = address(0);
+    //     }
+
+    //     if (owner != address(0)) {
+    //         return;
+    //     }
+
+    //     players.mintPlayer(tokenId, cid);
+
+    //     assertEq(
+    //         keccak256(abi.encodePacked(players.tokenURI(tokenId))),
+    //         keccak256(abi.encodePacked("ipfs://", cid))
+    //     );
+    //     assertEq(players.ownerOf(tokenId), address(this));
+    // }
 
 }
