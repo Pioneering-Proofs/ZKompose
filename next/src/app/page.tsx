@@ -3,6 +3,7 @@
 import { useAccount, useConnect, useDisconnect } from "wagmi";
 import Navbar from "../components/Navbar";
 import Cards from "@/components/Cards";
+import { UserProvider } from "./UserProvider";
 
 function App() {
   const { address, status, chainId } = useAccount();
@@ -10,7 +11,7 @@ function App() {
   const { disconnect } = useDisconnect();
 
   return (
-    <>
+    <UserProvider>
       <div>
         <h2 className="text-xl">Account</h2>
 
@@ -46,7 +47,7 @@ function App() {
 
       <Navbar />
       <Cards address={address} />
-    </>
+    </UserProvider>
   );
 }
 
