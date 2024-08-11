@@ -68,7 +68,7 @@ mod tests {
         // let std_dev = U8::from(10);
         // let median = U8::from(50);
         let input = GenPlayersInput {
-            player_count: 15,
+            buyer_pubkey: "".to_string(),
             std_dev: 10,
             median: 50,
             u: 3.14159,
@@ -87,7 +87,7 @@ mod tests {
 
         println!("Generated players: {:?}", session_info.journal.bytes);
 
-        let players: Vec<PlayerJson> = serde::from_slice(&session_info.journal.bytes)
+        let players: [PlayerJson; 15] = serde::from_slice(&session_info.journal.bytes)
             .expect("Failed to decode players from guest");
 
         println!("Player data: {:?}", players);

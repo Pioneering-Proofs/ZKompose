@@ -26,6 +26,7 @@ json = "0.12"
 serde = "1.0.205"
 serde_json = "1.0.122"
 sha2 = "0.10.8"
+array-init = "2.1.0"
 
 [profile.release]
 lto = "thin"

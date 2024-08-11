@@ -59,7 +59,7 @@ pub struct Skills {
 
 #[derive(Debug, Serialize, Deserialize)]
 pub struct GenPlayersInput {
-    pub player_count: usize,
+    pub buyer_pubkey: String,
     pub std_dev: u8,
     pub median: u8,
     pub u: f64,
