@@ -49,15 +49,14 @@ impl TryFrom<JsonValue> for Team {
     type Error = DecodingError;
 
     fn try_from(value: JsonValue) -> Result<Self, Self::Error> {
-        Ok(Team {
-            name: String::from(value["name"].as_str().expect("No team name")),
-            logo: match value.contains("logo") {
+        Ok(Team::new(
+            Roster::try_from(value["roster"].clone()).unwrap(),
+            String::from(value["name"].as_str().expect("No team name")),
+            match value.contains("logo") {
                 true => Some(String::from(value["logo"].as_str().unwrap())),
                 false => None,
             },
-            coach: Coach::try_from(value["coach"].clone()).unwrap(),
-            roster: Roster::try_from(value["roster"].clone()).unwrap(),
-        })
+        ))
     }
 }
 
@@ -154,15 +153,15 @@ impl TryFrom<JsonValue> for Roster {
                 Ok(player)
             }
         };
-        let defenders = try_array_init(|n| check_player(n, "defenders")).unwrap();
-        let midfielders = try_array_init(|n| check_player(n, "midfielders")).unwrap();
-        let forwards = try_array_init(|n| check_player(n, "forwards")).unwrap();
+        let defense = try_array_init(|n| check_player(n, "defense")).unwrap();
+        let mid = try_array_init(|n| check_player(n, "mid")).unwrap();
+        let offense = try_array_init(|n| check_player(n, "offense")).unwrap();
 
         Ok(Roster {
-            goal_keeper: Player::try_from(value["goal_keeper"].clone()).unwrap(),
-            defenders,
-            midfielders,
-            forwards,
+            goal_tender: Player::try_from(value["goal_tender"].clone()).unwrap(),
+            defense,
+            mid,
+            offense,
         })
     }
 }
