@@ -10,7 +10,6 @@ body,
 
 @layer base {
   :root {
-
     --background: 36 39% 88%;
     --foreground: 36 45% 15%;
     --primary: 36 45% 70%;
@@ -31,7 +30,6 @@ body,
     --input: 36 45% 60%;
     --ring: 36 45% 30%;
     --radius: 0rem;
-
   }
 
   .dark {
@@ -60,6 +58,133 @@ body,
     --chart-4: 280 65% 60%;
     --chart-5: 340 75% 55%;
   }
+}
+
+.player {
+  position: relative;
+  z-index: 2;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  padding: 5px;
+  width: 12%;
+  aspect-ratio: 1 / 1;
+  background: #eee;
+  border-radius: 5%;
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
+}
+
+.player::before {
+  content: "";
+  position: absolute;
+  z-index: 1;
+  background: #eee;
+  width: 10px;
+  height: 10px;
+  transform-origin: center;
+  transform: rotate(45deg) translate(-50%, -2px);
+  top: 100%;
+  left: 50%;
+}
+
+.player svg,
+.player img {
+  position: relative;
+  z-index: 2;
+  border-radius: 5%;
+}
+
+.player.diamond svg,
+.player.diamond img {
+  background: radial-gradient(
+    circle at 12.3% 19.3%,
+    rgb(85, 88, 218) 0%,
+    rgb(95, 209, 249) 100.2%
+  );
+}
+
+.player.platinum svg,
+.player.platinum img {
+  background: radial-gradient(
+    circle at 10% 20%,
+    rgb(166, 226, 229) 0%,
+    rgb(198, 232, 221) 100.2%
+  );
+}
+
+.player.gold svg,
+.player.gold img {
+  background: linear-gradient(
+    109.6deg,
+    rgb(255, 219, 47) 11.2%,
+    rgb(244, 253, 0) 100.2%
+  );
+}
+
+.player.silver svg,
+.player.silver img {
+  background: linear-gradient(to top, #c4c5c7 0%, #dcdddf 52%, #ebebeb 100%);
+}
+
+.player.bronze svg,
+.player.bronze img {
+  background: linear-gradient(120deg, #f6d365 0%, #fda085 100%);
+}
+
+.player.diamond .stat {
+  color: rgb(85, 88, 218);
+  border-color: rgb(85, 88, 218);
+}
+
+.player.platinum .stat {
+  color: rgb(166, 226, 229);
+  border-color: rgb(166, 226, 229);
+}
+
+.player.gold .stat {
+  color: goldenrod;
+  border-color: goldenrod;
+}
+
+.player.silver .stat {
+  color: #777;
+  border-color: #777;
+}
+
+.player.bronze .stat {
+  color: orange;
+  border-color: orange;
+}
+
+.player .stat {
+  position: relative;
+  z-index: 3;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  background: #eee;
+  font-size: 16px;
+  font-weight: bold;
+  width: 1.5rem;
+  height: 1.5rem;
+  border-radius: 50%;
+  margin-top: -0.75rem;
+  border-width: 1px;
+  border-style: solid;
+}
+
+.player .name {
+  max-width: 75%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.player .jersey-num {
+  font-size: 12px;
+  font-weight: 900;
+  color: #555;
 }
 
 @layer base {

@@ -1,40 +1,15 @@
-"use client";
+import { Cards } from "@/components/Cards";
+import { getPlayersByTokenIds } from "@/lib/tokens";
 
-import { useAccount, useConnect, useDisconnect } from "wagmi";
-import Navbar from "../components/Navbar";
-import Cards from "@/components/Cards";
-import { UserProvider } from "./UserProvider";
+export default async function Home() {
 
-import { Button } from "@/components/ui/button";
+  const userPlayerTokenIds = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15];
+  const players = await getPlayersByTokenIds(userPlayerTokenIds);
 
-function App() {
-  const { address, status, chainId } = useAccount();
-  const { connectors, connect, error } = useConnect();
-  const { disconnect } = useDisconnect();
-
-  const account = useAccount();
   return (
-    <UserProvider>
-      <div className="ml-auto flex gap-2">
-        {account.status === "connected" && (
-          <Button variant={"outline"} onClick={() => disconnect()}>
-            Disconnect
-          </Button>
-        )}
-        {connectors.map((connector) => (
-          <Button
-            key={connector.uid}
-            onClick={() => connect({ connector })}
-            type="button"
-          >
-            {connector.name}
-          </Button>
-        ))}
-      </div>
+    <main>
 
-      <Cards address={address} />
-    </UserProvider>
+      <Cards userPlayers={players} />
+    </main>
   );
 }
-
-export default App;

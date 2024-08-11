@@ -1,34 +1,59 @@
+'use client';
 /**
  * v0 by Vercel.
  * @see https://v0.dev/t/CtqJErKXAAI
  * Documentation: https://v0.dev/docs#integrating-generated-code-into-your-nextjs-app
  */
 import Link from "next/link";
+import { useAccount, useConnect, useDisconnect } from "wagmi";
+
 import { Sheet, SheetTrigger, SheetContent } from "@/components/ui/sheet";
 import { Button } from "@/components/ui/button";
 
 export default function Navbar() {
+  const { status } = useAccount();
+  const { connectors, connect, error } = useConnect();
+  const { disconnect } = useDisconnect();
+
   return (
     <header className="flex h-16 w-full items-center justify-between bg-background px-4 md:px-6">
       <Link href="#" className="flex items-center gap-2" prefetch={false}>
         <MountainIcon className="h-6 w-6" />
         <span className="sr-only">Acme Inc</span>
       </Link>
-      <nav className="hidden items-center gap-4 md:flex">
-        <Link
-          href="/"
-          className="inline-flex h-9 items-center justify-center rounded-md bg-background px-4 py-2 text-sm font-medium transition-colors hover:bg-accent hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground focus:outline-none disabled:pointer-events-none disabled:opacity-50"
-          prefetch={false}
-        >
-          Home
-        </Link>
-        <Link
-          href="/team"
-          className="inline-flex h-9 items-center justify-center rounded-md bg-background px-4 py-2 text-sm font-medium transition-colors hover:bg-accent hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground focus:outline-none disabled:pointer-events-none disabled:opacity-50"
-          prefetch={false}
-        >
-          Team
-        </Link>
+      <nav className="hidden items-center justify-between gap-4 md:flex">
+        <div className="flex gap-2">
+          <Link
+            href="/"
+            className="inline-flex h-9 items-center justify-center rounded-md bg-background px-4 py-2 text-sm font-medium transition-colors hover:bg-accent hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground focus:outline-none disabled:pointer-events-none disabled:opacity-50"
+            prefetch={false}
+          >
+            Home
+          </Link>
+          <Link
+            href="/team"
+            className="inline-flex h-9 items-center justify-center rounded-md bg-background px-4 py-2 text-sm font-medium transition-colors hover:bg-accent hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground focus:outline-none disabled:pointer-events-none disabled:opacity-50"
+            prefetch={false}
+          >
+            Team
+          </Link>
+        </div>
+        <div className="flex gap-2">
+          {status === "connected" && (
+            <Button variant={"outline"} onClick={() => disconnect()}>
+              Disconnect
+            </Button>
+          )}
+          {status !== "connected" && connectors.map((connector) => (
+            <Button
+              key={connector.uid}
+              onClick={() => connect({ connector })}
+              type="button"
+            >
+              {connector.name}
+            </Button>
+          ))}
+        </div>
       </nav>
       <Sheet>
         <SheetTrigger asChild>

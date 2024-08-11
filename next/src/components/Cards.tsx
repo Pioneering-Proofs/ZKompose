@@ -1,16 +1,14 @@
+'use client';
 /**
  * v0 by Vercel.
  * @see https://v0.dev/t/DHoPpuIM9Li
  * Documentation: https://v0.dev/docs#integrating-generated-code-into-your-nextjs-app
  */
-import { useState } from "react";
+import React, { useContext, useState } from "react";
 import Link from "next/link";
-import secp256k1 from "secp256k1";
 
-import { Address } from "viem";
-import { useSignMessage, useWriteContract } from "wagmi";
+import { useAccount, useWriteContract } from "wagmi";
 import { ethers } from "ethers";
-import { createHash } from "crypto";
 
 import {
   Card,
@@ -20,10 +18,13 @@ import {
   CardFooter,
 } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Tier, tierPricer, TierText } from "@/lib/constants";
+import { PLAYERS_CONTRACT_ADDRESS, Tier, tierPricer, TierText } from "@/lib/constants";
 import { PLAYERS_ABI } from "@/contracts/abi";
 import { toast } from "sonner";
 import { waitTx } from "@/lib/utils";
+import { UserContext } from "@/app/UserProvider";
+import { Player as PlayerType } from "@/lib/types";
+import { Player } from "./player";
 
 const plans = [
   {
@@ -41,31 +42,33 @@ const plans = [
   { tier: Tier.Bronze, name: TierText.Bronze, price: tierPricer(Tier.Bronze) },
 ];
 
-export default function Cards({ address }: { address?: Address }) {
+export interface CardsProps {
+  userPlayers: PlayerType[];
+}
+
+export const Cards: React.FC<CardsProps> = ({ userPlayers }) => {
+  // const [userPlayers, setUserPlayers] = useState<PlayerType[]>([]);
   // Set up contract interaction using Wagmi
+  const { address } = useAccount();
   const [tier, setTier] = useState<Tier>();
   const { writeContractAsync, isPending } = useWriteContract();
-  const { signMessageAsync } = useSignMessage();
+  const smthn = useContext(UserContext);
 
-  const handleSignature = async (tier: Tier) => {
-    setTier(tier);
-    const message = `Purchase order for ${address}`;
-    const signature = await signMessageAsync({ message });
-    await handlePurchase(signature);
-  };
+  // const handleSignature = async (tier: Tier) => {
+  //   setTier(tier);
+  //   const message = `Purchase order for ${address}`;
+  //   const signature = await signMessageAsync({ message });
+  //   await handlePurchase(signature);
+  // };
 
-  const handlePurchase = async (signData: string) => {
-    if (!signData || !tier) return;
-
+  const handlePurchase = async (tier: Tier) => {
     const id = toast.loading("Processing purchase...");
     try {
-      // TODO: @arian this is the private key. Store it in context with persistance
-      const privKeyBuff = createHash("sha256").update(signData).digest();
-      const pubKey = secp256k1.publicKeyCreate(privKeyBuff, true); // uncompressed key
+      console.log('tier :>> ', tier);
 
       const hash = await writeContractAsync({
         abi: PLAYERS_ABI,
-        address: "0xfAa746C91B8704BF52ba0aF84ded324fAEf37A7c",
+        address: PLAYERS_CONTRACT_ADDRESS,
         functionName: "requestPack",
         args: [tier],
         value: tierPricer(tier),
@@ -107,20 +110,37 @@ export default function Cards({ address }: { address?: Address }) {
               <CardContent className="p-6">
                 <div className="space-y-2">
                   <h3 className="text-4xl font-bold">
-                    {ethers.formatEther(plan.price)}
+                    {ethers.formatEther(plan.price)} ETH
                   </h3>
                 </div>
               </CardContent>
               <CardFooter>
                 <Button
                   disabled={isPending || !address}
-                  onClick={() => handleSignature(plan.tier)}
+                  onClick={() => handlePurchase(plan.tier)}
                 >
                   Select
                 </Button>
               </CardFooter>
             </Card>
           ))}
+        </div>
+
+        <div className="flex flex-col">
+          <h2 className="text-2xl font-bold tracking-tight">Your Players</h2>
+          <p className="text-muted-foreground">
+            Your current team of players.
+          </p>
+
+          <div className="flex flex-row flex-wrap gap-4">
+            {
+              userPlayers.length > 0 ? userPlayers.map((player) => {
+                return (
+                  <Player key={`user-player-${player.token_id}`} player={player} />
+                )
+              }) : <p>No players found</p>
+            }
+          </div>
         </div>
       </div>
     </div>
