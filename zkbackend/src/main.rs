@@ -35,7 +35,7 @@ fn gen_player(req_body: Json<PlayerRequestBody>) -> Json<Vec<PlayerJson>> {
         order_id: req_body.order_id,
         buyer_pubkey: "".to_string(),
         std_dev: 5,
-        median: match_player_tier(req_body.tier),
+        tier: req_body.tier,
         u: req_body.u,
         v: req_body.v,
     };
@@ -50,7 +50,7 @@ fn gen_player(req_body: Json<PlayerRequestBody>) -> Json<Vec<PlayerJson>> {
             Player::new(
                 (input.order_id * 15) + i as u32,
                 input.std_dev,
-                input.median,
+                match_player_tier(input.tier),
                 u,
                 v,
             )

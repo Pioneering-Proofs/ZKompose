@@ -56,12 +56,17 @@ interface IPlayers is IERC721 {
     /**
      * @notice Requests a pack be minted
      */
+    function requestPack(Tier tier) external payable returns (uint256 packId);
+
+    /**
+     * @notice Requests a pack be minted
+     */
     function requestPack(Tier tier, Secp256k1PubKey calldata key) external payable returns (uint256 packId);
 
     /**
      * @notice Allows fulfiller to fill a user's pack order
      */
-    function fulfillPackOrder(uint256 orderId, bytes32[15] calldata URIs, bytes calldata seal) external;
+    function fulfillPackOrder(uint256 orderId, string[15] calldata URIs, bytes calldata seal) external;
 
     /**
      * @notice Allows user to cancel a pack order if it has not been fulfilled in reasonable time

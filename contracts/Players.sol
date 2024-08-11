@@ -82,27 +82,28 @@ contract Players is ERC721EnumerableURI, IPlayers {
 
     /// @inheritdoc IPlayers
     function requestPack(Tier tier, Secp256k1PubKey calldata key) external payable returns (uint256 packId) {
+        bytes32 hashed = keccak256(abi.encode(key));
+        if (keccak256(abi.encode(_pubKeys[msg.sender])) != hashed) {
+            _pubKeys[msg.sender] = key;
+        }
+        return requestPack(tier);
+    }
+
+    function requestPack(Tier tier) public payable returns (uint256 packId) {
         uint256 cost = costOfPack(tier);
         if (msg.value < cost) revert InsufficientFunds(cost, msg.value);
 
         packId = currentPackId;
-
-        bytes32 hashed = keccak256(abi.encode(key));
-
-        if (keccak256(abi.encode(_pubKeys[msg.sender])) != hashed) {
-            _pubKeys[msg.sender] = key;
-        }
-
         _packRequests[packId] =
             PackRequest({tier: tier, timestamp: uint40(block.timestamp), requester: msg.sender});
 
-        emit PackRequested(msg.sender, packId, tier, key);
+        emit PackRequested(msg.sender, packId, tier, _pubKeys[msg.sender]);
 
         currentPackId++;
     }
 
     /// @inheritdoc IPlayers
-    function fulfillPackOrder(uint256 orderId, bytes32[15] calldata URIs, bytes calldata seal) external {
+    function fulfillPackOrder(uint256 orderId, string[15] calldata URIs, bytes calldata seal) external {
         if (msg.sender != packFulfiller) revert UnauthorizedFulfiller(msg.sender);
 
         PackRequest storage request = _packRequests[orderId];
@@ -110,6 +111,11 @@ contract Players is ERC721EnumerableURI, IPlayers {
 
         bytes memory journal = abi.encode(request.tier, orderId, URIs);
         verifier.verify(seal, genPlayerImageId, sha256(journal));
+
+        for (uint256 i = 0; i < 15; i++) {
+            _mint(request.requester, (orderId * 15) + i, URIs[i]);
+            currentPackId++;
+        }
 
         delete _packRequests[orderId];
     }
