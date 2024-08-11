@@ -170,6 +170,10 @@ impl Player {
         }
     }
 
+    pub fn to_json_string(&self) -> String {
+        serde_json::to_string(&self.to_json()).unwrap()
+    }
+
     pub fn player_svg_dir_cid() -> String {
         "QmXg8bcnf2HpEaedTwek2eHsiEGCrZh8fYkLtGzsoeCqRk".to_string()
     }

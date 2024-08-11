@@ -19,7 +19,9 @@ include!(concat!(env!("OUT_DIR"), "/methods.rs"));
 mod tests {
     use alloy_primitives::{address, U256};
     use alloy_sol_types::SolValue;
-    use common::types::{GenPlayersInput, GenPlayersJournal, Player, PlayerJson, Skills, Team};
+    use common::types::{
+        GenPlayersInput, GenPlayersJournal, GenTeamInput, Player, PlayerJson, Roster, Skills, Team,
+    };
     use json::{parse, stringify};
     use risc0_zkvm::{default_executor, guest::env::write_slice, serde, ExecutorEnv};
     use std::{env::current_dir, fs};

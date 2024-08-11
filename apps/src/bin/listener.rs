@@ -9,9 +9,14 @@ use alloy::{
 };
 use alloy_primitives::U256;
 use clap::Parser;
-use common::types::{GenPlayersInput, GenPlayersJournal};
+use common::{
+    math::new_u_v,
+    types::{GenPlayersInput, GenPlayersJournal, Player},
+    utils::match_player_tier,
+};
 use ethers::providers::StreamExt;
 use methods::GEN_PLAYER_ELF;
+use pinata_sdk::{PinByFile, PinByJson, PinataApi};
 use rand::{thread_rng, Rng};
 use risc0_ethereum_contracts::groth16;
 use risc0_zkvm::{default_prover, serde, ExecutorEnv, Output, ProverOpts, VerifierContext};
@@ -52,7 +57,7 @@ struct Args {
     priv_key: String,
 }
 
-fn request_proof(input: GenPlayersInput) -> Option<(GenPlayersJournal, Vec<u8>)> {
+async fn request_proof(input: GenPlayersInput) -> Option<(GenPlayersJournal, Vec<u8>)> {
     let env = ExecutorEnv::builder()
         .write(&input)
         .unwrap()
@@ -72,6 +77,36 @@ fn request_proof(input: GenPlayersInput) -> Option<(GenPlayersJournal, Vec<u8>)>
     let journal = receipt.journal.bytes.clone();
 
     let output: GenPlayersJournal = serde::from_slice(&journal).expect("Failed to decode output");
+    let cids = output.cids.clone();
+
+    let median = match_player_tier(input.tier);
+    let mut u = input.u;
+    let mut v = input.v;
+    let pinata_api_key = std::env::var("PINATA_API_KEY").unwrap();
+    let pinata_secret_api_key = std::env::var("PINATA_SECRET_API_KEY").unwrap();
+    let pinata = PinataApi::new(pinata_api_key, pinata_secret_api_key).unwrap();
+
+    for i in 0..15 {
+        (u, v) = new_u_v(u, v);
+        let player = Player::new(
+            (input.order_id * 15) + i as u32,
+            input.std_dev,
+            median,
+            input.u,
+            input.v,
+        );
+
+        if player.cid() != cids[i] {
+            return None;
+        }
+
+        let result = pinata
+            .pin_json(PinByJson::new(player.to_json_string()))
+            .await;
+        if let Ok(pinned_object) = result {
+            let hash = pinned_object.ipfs_hash;
+        }
+    }
     println!("Generated players: {:?}", output.cids.len());
 
     Some((output, seal))
@@ -145,7 +180,7 @@ async fn main() {
                     });
                     proof
                 });
-                let (output, seal) = result.await.unwrap().unwrap();
+                let (output, seal) = result.await.unwrap().await.unwrap();
 
                 for cid in output.cids.iter() {
                     println!("CID: {:?}", cid);

@@ -2,19 +2,9 @@ use alloy_primitives::{U256, U8};
 use common::{
     math::new_u_v,
     types::{GenPlayersInput, GenPlayersJournal, Player},
+    utils::match_player_tier,
 };
 use risc0_zkvm::guest::env;
-
-fn match_player_tier(tier: u8) -> u8 {
-    match tier {
-        0 => 90,
-        1 => 80,
-        2 => 70,
-        3 => 60,
-        4 => 60,
-        _ => 60,
-    }
-}
 
 fn main() {
     let input: GenPlayersInput = env::read();
