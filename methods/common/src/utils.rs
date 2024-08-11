@@ -86,14 +86,26 @@ impl TryFrom<JsonValue> for Player {
             Some(cid) => Some(String::from(cid)),
             None => None,
         };
+        let name = value["name"].as_str();
+        let overall_rating = value["overall_rating"].as_u8();
+        let jersey_number = value["jersey_number"].as_u8();
         let skills = Skills::try_from(value["skill"].clone());
         let skill_multiplier = value["skill_multiplier"].as_f32();
 
         // Try decoding as simple json
-        if token_id.is_some() && skills.is_ok() && skill_multiplier.is_some() {
+        if token_id.is_some()
+            && skills.is_ok()
+            && skill_multiplier.is_some()
+            && name.is_some()
+            && overall_rating.is_some()
+            && jersey_number.is_some()
+        {
             Ok(Player {
                 token_id: token_id.unwrap(),
                 cid,
+                name: String::from(name.unwrap()),
+                overall_rating: overall_rating.unwrap(),
+                jersey_number: jersey_number.unwrap(),
                 skills: skills.unwrap(),
                 skill_multiplier: skill_multiplier.unwrap(),
             })
