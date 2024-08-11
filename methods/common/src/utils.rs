@@ -6,6 +6,7 @@ use std::{
     collections::HashSet,
     convert::TryFrom,
     hash::{Hash, Hasher},
+    io::Read,
 };
 
 ////////////////////////////////////////////////////////////////////////
@@ -24,6 +25,7 @@ pub fn compute_cid(input: &[u8]) -> FileStats {
     let blocks = adder.finish();
     let mut stats = FileStats::default();
     for (cid, block) in blocks {
+        // [18, 32, 220, 232, 214, 52, 213, 200, 177, 163, 3, 84, 141, 30, 88, 42, 34, 45, 50, 100, 19, 248, 7, 94, 22, 62, 7, 10, 14, 149, 143, 160, 50, 5]
         stats.cid = Some(cid.to_string());
         stats.blocks += 1;
         stats.bytes += block.len() as u64;
@@ -31,6 +33,29 @@ pub fn compute_cid(input: &[u8]) -> FileStats {
 
     stats
 }
+
+// pub fn compute_hash(input: &[u8]) -> [u8; 32] {
+//     let mut adder = FileAdder::default();
+
+//     let length = input.len();
+
+//     for i in 0..length {
+//         adder.push(&[input[i]]);
+//     }
+
+//     let blocks = adder.finish();
+//     let mut stats = FileStats::default();
+//     let mut result;
+//     for (cid, block) in blocks {
+//         // [18, 32, 220, 232, 214, 52, 213, 200, 177, 163, 3, 84, 141, 30, 88, 42, 34, 45, 50, 100, 19, 248, 7, 94, 22, 62, 7, 10, 14, 149, 143, 160, 50, 5]
+//         result = cid;
+//         stats.cid = Some(cid.to_string());
+//         stats.blocks += 1;
+//         stats.bytes += block.len() as u64;
+//     }
+
+//     result.hash().bytes().try_into().unwrap()
+// }
 
 ////////////////////////////////////////////////////////////////////////
 /// Serialization and Deserialization
@@ -49,15 +74,14 @@ impl TryFrom<JsonValue> for Team {
     type Error = DecodingError;
 
     fn try_from(value: JsonValue) -> Result<Self, Self::Error> {
-        Ok(Team {
-            name: String::from(value["name"].as_str().expect("No team name")),
-            logo: match value.contains("logo") {
+        Ok(Team::new(
+            Roster::try_from(value["roster"].clone()).unwrap(),
+            String::from(value["name"].as_str().expect("No team name")),
+            match value.contains("logo") {
                 true => Some(String::from(value["logo"].as_str().unwrap())),
                 false => None,
             },
-            coach: Coach::try_from(value["coach"].clone()).unwrap(),
-            roster: Roster::try_from(value["roster"].clone()).unwrap(),
-        })
+        ))
     }
 }
 
@@ -154,15 +178,15 @@ impl TryFrom<JsonValue> for Roster {
                 Ok(player)
             }
         };
-        let defenders = try_array_init(|n| check_player(n, "defenders")).unwrap();
-        let midfielders = try_array_init(|n| check_player(n, "midfielders")).unwrap();
-        let forwards = try_array_init(|n| check_player(n, "forwards")).unwrap();
+        let defense = try_array_init(|n| check_player(n, "defense")).unwrap();
+        let mid = try_array_init(|n| check_player(n, "mid")).unwrap();
+        let offense = try_array_init(|n| check_player(n, "offense")).unwrap();
 
         Ok(Roster {
-            goal_keeper: Player::try_from(value["goal_keeper"].clone()).unwrap(),
-            defenders,
-            midfielders,
-            forwards,
+            goal_tender: Player::try_from(value["goal_tender"].clone()).unwrap(),
+            defense,
+            mid,
+            offense,
         })
     }
 }
@@ -215,5 +239,16 @@ impl TryFrom<JsonValue> for Coach {
         } else {
             Ok(result)
         }
+    }
+}
+
+pub fn match_player_tier(tier: u8) -> u8 {
+    match tier {
+        0 => 90,
+        1 => 80,
+        2 => 70,
+        3 => 60,
+        4 => 60,
+        _ => 60,
     }
 }

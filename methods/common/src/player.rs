@@ -1,7 +1,6 @@
-use super::math::{calculate_tier, generate_max_rating, generate_skill_scores, hash_f64, hash_i32};
+use super::math::{calculate_tier, generate_max_rating, generate_skill_scores, hash_i32};
 use super::types::{
-    Attribute, CIDError, Coach, ContentAddressable, FileStats, Player, PlayerCreationParams,
-    PlayerJson, Roster, Skills, Team, Template,
+    Attribute, CIDError, ContentAddressable, FileStats, Player, PlayerJson, Skills,
 };
 use super::utils::compute_cid;
 use std::env;
@@ -169,6 +168,10 @@ impl Player {
             tier: self.tier(),
             attributes: self.attributes(),
         }
+    }
+
+    pub fn to_json_string(&self) -> String {
+        serde_json::to_string(&self.to_json()).unwrap()
     }
 
     pub fn player_svg_dir_cid() -> String {

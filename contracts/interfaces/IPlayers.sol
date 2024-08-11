@@ -45,9 +45,7 @@ interface IPlayers is IERC721 {
     //  Events
     //  ─────────────────────────────────────────────────────────────────────────────
 
-    event PackRequested(
-        address indexed requester, uint256 indexed packId, Tier indexed tier, Secp256k1PubKey key
-    );
+    event PackRequested(address indexed requester, uint256 indexed packId, Tier indexed tier);
 
     //  ─────────────────────────────────────────────────────────────────────────────
     //  Minting Functions
@@ -56,7 +54,17 @@ interface IPlayers is IERC721 {
     /**
      * @notice Requests a pack be minted
      */
-    function requestPack(Tier tier, Secp256k1PubKey calldata key) external payable returns (uint256 packId);
+    function requestPack(Tier tier) external payable returns (uint256 packId);
+
+    /**
+     * @notice Allows fulfiller to fill a user's pack order
+     */
+    function fulfillPackOrder(uint256 orderId, bytes32[15] calldata URIs, bytes calldata seal) external;
+
+    /**
+     * @notice Allows user to cancel a pack order if it has not been fulfilled in reasonable time
+     */
+    function cancelOrder(uint256 orderId) external;
 
     /**
      * @notice Returns the cost of a pack

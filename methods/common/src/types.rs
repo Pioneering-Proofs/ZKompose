@@ -1,3 +1,5 @@
+use alloy_primitives::{address, wrap_fixed_bytes, Address, Bytes, FixedBytes, B512, U256, U8};
+use risc0_steel::ethereum::EthEvmInput;
 use serde::{Deserialize, Serialize};
 
 pub(crate) trait ContentAddressable {
@@ -27,9 +29,10 @@ pub struct FileStats {
 #[derive(Clone, Debug, Deserialize, PartialEq, Serialize)]
 pub struct Team {
     pub roster: Roster,
-    pub coach: Coach,
+    // pub coach: Coach,
     pub name: String,
     pub logo: Option<String>, //Cid,
+    pub team_rating: u8,
 }
 
 /// Player struct encodes the on-chain token ID, the CID of the player's IPFS data, the player's traits, and a skill multiplier.
@@ -74,12 +77,26 @@ pub struct Skills {
 
 #[derive(Debug, Serialize, Deserialize)]
 pub struct GenPlayersInput {
-    pub buyer_pubkey: String,
-    pub order_id: u32,
-    pub std_dev: u8,
-    pub median: u8,
-    pub u: f64,
-    pub v: f64,
+    pub order_id: U256,
+    pub std_dev: U8,
+    pub tier: U8,
+    pub u: U256,
+    pub v: U256,
+}
+
+#[derive(Debug, Serialize, Deserialize)]
+pub struct GenTeamInput {
+    pub name: String,
+    pub roster: Roster,
+    pub owner: Address,
+    pub logo_uri: Option<String>,
+}
+
+#[derive(Debug, Deserialize, Serialize)]
+pub struct BuildTeamInput {
+    pub chain_config: EthEvmInput,
+    pub owner: Address,
+    pub roster: Roster,
 }
 
 // TODO: Drop this in lieu of PlayerMetadata
@@ -99,10 +116,10 @@ pub struct PlayerJson {
 
 #[derive(Clone, Debug, Deserialize, PartialEq, Serialize)]
 pub struct Roster {
-    pub goal_keeper: Player,
-    pub defenders: [Player; 4],
-    pub midfielders: [Player; 3],
-    pub forwards: [Player; 3],
+    pub goal_tender: Player,
+    pub defense: [Player; 4],
+    pub mid: [Player; 3],
+    pub offense: [Player; 3],
 }
 
 #[derive(Clone, Debug, Deserialize, PartialEq, Serialize)]
@@ -127,4 +144,14 @@ pub struct Attribute {
     pub display_type: String,
     pub trait_type: String,
     pub value: u8,
+}
+
+// wrap_fixed_bytes!(pub struct CID_V0<46>;);
+
+#[derive(Clone, Serialize, Deserialize)]
+pub struct GenPlayersJournal {
+    pub tier: U8,
+    pub order_id: U256,
+    pub cids: [String; 15],
+    // pub cids: [FixedBytes<46>; 15],
 }

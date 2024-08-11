@@ -2,3 +2,4 @@ forge-std/=lib/forge-std/src/
 openzeppelin/=lib/openzeppelin-contracts/
 risc0/=lib/risc0-ethereum/contracts/src/
 src/=contracts/
+Base58/=lib/base58-solidity/contracts/

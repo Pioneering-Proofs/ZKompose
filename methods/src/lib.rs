@@ -17,40 +17,48 @@ include!(concat!(env!("OUT_DIR"), "/methods.rs"));
 
 #[cfg(test)]
 mod tests {
-    use alloy_primitives::{address, hex::deserialize, Address, U256, U8};
+    use alloy_primitives::{address, hex::ToHex, U256};
     use alloy_sol_types::SolValue;
-    use common::types::{GenPlayersInput, Player, PlayerJson, Skills, Team};
+    use cid::Cid;
+    use common::types::{
+        GenPlayersInput, GenPlayersJournal, GenTeamInput, Player, PlayerJson, Roster, Skills, Team,
+    };
     use json::{parse, stringify};
-    use risc0_zkvm::{default_executor, guest::env::write_slice, serde, ExecutorEnv};
-    use std::{env::current_dir, fs};
+    use risc0_zkvm::{
+        default_executor, default_prover, guest::env::write_slice, serde, ExecutorEnv, ProverOpts,
+        VerifierContext,
+    };
+    use std::{env::current_dir, fs, io::Read};
 
     #[test]
     fn prove_build_team() {
-        let input_data = include_str!("../../data/teams/0.json");
-        // println!("Input data: {}", input_data);
-        let mut input_data = parse(input_data).unwrap();
-        for n in 0..10 {
-            let current = current_dir().unwrap();
-            let file_name: String;
-            if current.ends_with("methods") {
-                file_name = format!("../data/players/{}.json", n);
-            } else {
-                file_name = format!("../../data/players/{}.json", n);
-            }
-            println!(
-                "Reading player data from: {} from {}",
-                file_name,
-                current.display()
-            );
-            let player_data =
-                fs::read_to_string(file_name).expect("Should have been able to read the file");
-            input_data["players"][n] = parse(&player_data).unwrap();
+        let mut players: Vec<Player> = vec![];
+        for n in 0..=10 {
+            let path = format!("../../test_data/players/{}.json", n);
+            let input_data = fs::read_to_string(path).unwrap();
+            let input_data = parse(&input_data).unwrap();
+            let player = Player::try_from(input_data.clone()).unwrap();
+            players.push(player);
         }
-        println!("Running build team. Data length: {}", input_data.len());
-        // println!("Input data: {}", input_data.to_string());
+        let input = GenTeamInput {
+            roster: Roster {
+                goal_tender: players[0].clone(),
+                defense: [
+                    players[1].clone(),
+                    players[2].clone(),
+                    players[3].clone(),
+                    players[4].clone(),
+                ],
+                mid: [players[5].clone(), players[6].clone(), players[7].clone()],
+                offense: [players[8].clone(), players[9].clone(), players[10].clone()],
+            },
+            name: "Test Team".to_string(),
+            owner: address!("d8da6bf26964af9d7eed9e03e53415d37aa96045"),
+            logo_uri: None,
+        };
 
         let env = ExecutorEnv::builder()
-            .write(&input_data.to_string())
+            .write(&input)
             .unwrap()
             .build()
             .unwrap();
@@ -58,6 +66,9 @@ mod tests {
         let session_info = default_executor()
             .execute(env, super::BUILD_TEAM_ELF)
             .unwrap();
+
+        let cids: [String; 15] = serde::from_slice(&session_info.journal.bytes)
+            .expect("Failed to decode players from guest");
     }
 
     #[test]
@@ -77,14 +88,10 @@ mod tests {
 
     #[test]
     fn prove_gen_players() {
-        // let player_count = U8::from(10);
-        // let std_dev = U8::from(10);
-        // let median = U8::from(50);
         let input = GenPlayersInput {
-            buyer_pubkey: "".to_string(),
-            order_id: 0,
+            order_id: 42,
             std_dev: 10,
-            median: 50,
+            tier: 1,
             u: 3.14159,
             v: 2123.71828,
         };
@@ -101,14 +108,44 @@ mod tests {
 
         println!("Generated players: {:?}", session_info.journal.bytes);
 
-        let CIDs: [String; 15] = serde::from_slice(&session_info.journal.bytes)
+        let output: GenPlayersJournal = serde::from_slice(&session_info.journal.bytes)
             .expect("Failed to decode players from guest");
 
-        println!("Player data: {:?}", CIDs.len());
+        println!("Player data: {:?}", output.cids.len());
+        println!("Tier: {}", output.tier);
+        println!("Order ID: {}", output.order_id);
 
-        for cid in CIDs.iter() {
-            println!("CID: {:?}", cid);
+        for cid in output.cids.iter() {
+            let bytes = cid.0;
+            let mut hex = String::new();
+            for byte in bytes {
+                hex.push_str(&format!("{:02x}", byte));
+            }
+            println!("CID: {:?}", hex);
+            // for byte in cid.iter() {
+            //     print!("{:02x}", byte);
+            // }
         }
+
+        // let env = ExecutorEnv::builder()
+        //     .write(&input)
+        //     .expect("Invalid input")
+        //     .build()
+        //     .unwrap();
+
+        // let prover = default_prover();
+        // let receipt = prover
+        //     .prove_with_ctx(
+        //         env,
+        //         &VerifierContext::default(),
+        //         super::GEN_PLAYER_ELF,
+        //         &ProverOpts::groth16(),
+        //     )
+        //     .unwrap()
+        //     .receipt;
+        // receipt.verify(super::GEN_PLAYER_ID).unwrap();
+
+        // println!("Proof verified");
     }
 
     #[test]
