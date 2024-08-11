@@ -2,7 +2,10 @@ use std::io::Read;
 
 use alloy_primitives::{address, Address, U256};
 use alloy_sol_types::{sol, SolValue};
-use common::types::{Player, PlayerPosition, Roster, Skills, Team};
+use common::{
+    team,
+    types::{GenTeamInput, Player, PlayerPosition, Roster, Skills, Team},
+};
 use json::parse;
 use risc0_steel::{
     config::ETH_SEPOLIA_CHAIN_SPEC,
@@ -33,12 +36,14 @@ const TEAM_CONTRACT_ADDRESS: Address = address!("4157393c6f3c4ce2826d3e1bd155c3a
 fn main() {
     // TODO: Signature of owner will need to be provided to ensure this operation is authorized
     let chain_config: EthEvmInput = env::read();
-    let caller: Address = env::read();
-    let roster: Roster = env::read();
+    let input: GenTeamInput = env::read();
 
     let env = chain_config
         .into_env()
         .with_chain_spec(&ETH_SEPOLIA_CHAIN_SPEC);
+
+    let team = Team::new(input.roster.clone(), input.name, input.logo_uri);
+    let team_cid = team.cid();
 
     // 1. Validate caller is owner of all players
     // let contract = Contract::new(PLAYER_CONTRACT_ADDRESS, &env);
