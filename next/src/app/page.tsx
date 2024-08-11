@@ -12,7 +12,7 @@ function App() {
 
   return (
     <UserProvider>
-      <div>
+      {/* <div>
         <h2 className="text-xl">Account</h2>
 
         <div>
@@ -28,9 +28,9 @@ function App() {
             Disconnect
           </button>
         )}
-      </div>
+      </div> */}
 
-      <div>
+      {/* <div>
         <h2>Connect</h2>
         {connectors.map((connector) => (
           <button
@@ -43,7 +43,7 @@ function App() {
         ))}
         <div>{status}</div>
         <div>{error?.message}</div>
-      </div>
+      </div> */}
 
       <Navbar />
       <Cards address={address} />
