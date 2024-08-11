@@ -4,6 +4,7 @@ version = { workspace = true }
 edition = { workspace = true }
 
 [dependencies]
+array-init = "2.1.0"
 common = { path = "../methods/common" }
 methods = { workspace = true }
 risc0-ethereum-contracts = { workspace = true }

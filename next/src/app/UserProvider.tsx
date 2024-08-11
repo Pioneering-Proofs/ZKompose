@@ -6,8 +6,10 @@ export const UserProvider = ({ children }: { children: React.ReactNode }) => {
   const [key, setKey] = useState<Buffer | null>(null);
   const UserContext = createContext({ key });
   const { signMessage } = useSignMessage();
+
   const { address, status } = useAccount();
   let isNewConnection = true;
+
 
   const setKeys = async (signData: string) => {
     try {
@@ -37,6 +39,7 @@ export const UserProvider = ({ children }: { children: React.ReactNode }) => {
     async onConnect(data) {
       const signData = "session data" + { data };
       console.log("signData: ", signData);
+
       console.log("address: ", address);
       if (!address) {
         signMessage({ message: "You are connecting your wallet to the app" });
@@ -53,6 +56,7 @@ export const UserProvider = ({ children }: { children: React.ReactNode }) => {
           } catch (e) {
             console.error("Failed to get private key from local storage: ", e);
           }
+
         }
       }
     },

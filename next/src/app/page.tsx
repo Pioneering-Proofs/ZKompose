@@ -4,7 +4,9 @@ import { useAccount, useConnect, useDisconnect } from "wagmi";
 import Navbar from "../components/Navbar";
 import Cards from "@/components/Cards";
 import { UserProvider } from "./UserProvider";
+
 import { Button } from "@/components/ui/button";
+
 
 function App() {
   const { address, status, chainId } = useAccount();
@@ -14,7 +16,9 @@ function App() {
   const account = useAccount();
   return (
     <UserProvider>
+
       {/* <div>
+
         <h2 className="text-xl">Account</h2>
 
         <div>
@@ -62,6 +66,7 @@ function App() {
           </Button>
         ))}
       </div>
+
 
       <Cards address={address} />
     </UserProvider>

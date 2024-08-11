@@ -8,8 +8,10 @@ import { cookieToInitialState } from "wagmi";
 import { getConfig } from "../wagmi";
 import { Providers } from "./providers";
 import { Toaster } from "@/components/ui/sonner";
+
 import { N } from "ethers";
 import Navbar from "@/components/Navbar";
+
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -27,7 +29,9 @@ export default function RootLayout(props: { children: ReactNode }) {
     <html lang="en">
       <body className={inter.className}>
         <Toaster />
+
         <Navbar />
+
         <Providers initialState={initialState}>{props.children}</Providers>
       </body>
     </html>

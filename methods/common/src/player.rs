@@ -1,12 +1,11 @@
-use super::math::{
-    calculate_tier, generate_overall_rating, generate_skill_scores, hash_f64, hash_i32,
-};
+use super::math::{calculate_tier, generate_max_rating, generate_skill_scores, hash_f64, hash_i32};
 use super::types::{
     Attribute, CIDError, Coach, ContentAddressable, FileStats, Player, PlayerCreationParams,
     PlayerJson, Roster, Skills, Team, Template,
 };
 use super::utils::compute_cid;
 use std::env;
+use std::fmt::format;
 
 impl ContentAddressable for Player {
     fn content_stats(&self) -> FileStats {
@@ -23,30 +22,31 @@ impl Player {
     }
 
     // TODO: conform to Template trait
-    pub fn fill_template(&self) -> &str {
+    pub fn fill_template(&self) -> String {
         let base_uri = env::var("PLAYER_EXTERNAL_URL_BASE")
             .unwrap_or("https://www.youtube.com/watch?v=dQw4w9WgXcQ?".to_string());
 
-        let template = self.template();
-        template.replace("NAME", &self.name);
-        template.replace("JERSEY_NUMBER", &self.jersey_number.to_string());
-        template.replace("EXTERNAL_URL", &format!("{}{}", base_uri, self.token_id));
-        template.replace(
-            "IMAGE_URI",
-            format!("ipfs://{}", "TODO: IPFS SVG HASH").as_str(),
-        );
-        template.replace("TIER", self.tier().to_string().as_str());
-        template.replace("OVERALL_RATING", self.overall_rating.to_string().as_str());
-        template.replace("SKILL_MULTIPLIER", &self.skill_multiplier.to_string());
-        template.replace("SPEED", &self.skills.speed.to_string());
-        template.replace("SHOOTING", &self.skills.shooting.to_string());
-        template.replace("PASSING", &self.skills.passing.to_string());
-        template.replace("DRIBBLING", &self.skills.dribbling.to_string());
-        template.replace("DEFENSE", &self.skills.defense.to_string());
-        template.replace("PHYSICAL", &self.skills.physical.to_string());
-        template.replace("GOAL_TENDING", &self.skills.goal_tending.to_string());
+        let template_str = self
+            .template()
+            .replace("NAME", &self.name)
+            .replace("JERSEY_NUMBER", &self.jersey_number.to_string())
+            .replace("EXTERNAL_URL", &format!("{}{}", base_uri, self.token_id))
+            .replace(
+                "IMAGE_URI",
+                format!("ipfs://{}", "TODO: IPFS SVG HASH").as_str(),
+            )
+            .replace("TIER", self.tier().to_string().as_str())
+            .replace("OVERALL_RATING", self.overall_rating.to_string().as_str())
+            .replace("SKILL_MULTIPLIER", &self.skill_multiplier.to_string())
+            .replace("SPEED", &self.skills.speed.to_string())
+            .replace("SHOOTING", &self.skills.shooting.to_string())
+            .replace("PASSING", &self.skills.passing.to_string())
+            .replace("DRIBBLING", &self.skills.dribbling.to_string())
+            .replace("DEFENSE", &self.skills.defense.to_string())
+            .replace("PHYSICAL", &self.skills.physical.to_string())
+            .replace("GOAL_TENDING", &self.skills.goal_tending.to_string());
 
-        template
+        template_str
     }
 
     fn template(&self) -> &str {
@@ -57,10 +57,12 @@ impl Player {
 
 impl Player {
     pub fn new(token_id: u32, standard_deviation: u8, median: u8, u: f64, v: f64) -> Self {
-        let overall_rating =
-            generate_overall_rating(standard_deviation as f64, median as f64, u, v);
-        let skill_scores = generate_skill_scores(overall_rating, u, v);
-        let jersey_number: u8 = hash_i32(u + v, Some(0), Some(99)) as u8;
+        let max_rating = generate_max_rating(standard_deviation as f64, median as f64, u, v);
+
+        println!("Max rating: {}", max_rating);
+
+        let skill_scores = generate_skill_scores(max_rating, u, v);
+        let jersey_number: u8 = hash_i32(u + v, Some(0), Some(999)) as u8;
 
         let skills = Skills {
             speed: skill_scores[0],
@@ -71,6 +73,7 @@ impl Player {
             physical: skill_scores[5],
             goal_tending: skill_scores[6],
         };
+        let overall_rating = skill_scores.iter().max().unwrap().clone();
 
         Player {
             token_id,
@@ -103,6 +106,73 @@ impl Player {
 
     pub fn tier(&self) -> u8 {
         calculate_tier(self.overall_rating)
+    }
+
+    pub fn attributes(&self) -> Vec<Attribute> {
+        let mut attributes = Vec::new();
+        attributes.push(Attribute {
+            trait_type: "Speed".to_string(),
+            display_type: "Speed".to_string(),
+            value: self.skills.speed,
+        });
+        attributes.push(Attribute {
+            trait_type: "Shooting".to_string(),
+            display_type: "Shooting".to_string(),
+            value: self.skills.shooting,
+        });
+        attributes.push(Attribute {
+            trait_type: "Passing".to_string(),
+            display_type: "Passing".to_string(),
+            value: self.skills.passing,
+        });
+        attributes.push(Attribute {
+            trait_type: "Dribbling".to_string(),
+            display_type: "Dribbling".to_string(),
+            value: self.skills.dribbling,
+        });
+        attributes.push(Attribute {
+            trait_type: "Defense".to_string(),
+            display_type: "Defense".to_string(),
+            value: self.skills.defense,
+        });
+        attributes.push(Attribute {
+            trait_type: "Physical".to_string(),
+            display_type: "Physical".to_string(),
+            value: self.skills.physical,
+        });
+        attributes.push(Attribute {
+            trait_type: "Goal Tending".to_string(),
+            display_type: "Goal Tending".to_string(),
+            value: self.skills.goal_tending,
+        });
+
+        attributes
+    }
+
+    pub fn to_json(&self) -> PlayerJson {
+        PlayerJson {
+            name: self.name.clone(),
+            overall_rating: self.overall_rating,
+            skill: self.skills.clone(),
+            skill_multiplier: self.skill_multiplier,
+            jersey_number: self.jersey_number,
+            description: format!(
+                "#{} {}. Overall rating of {}.",
+                self.jersey_number, self.name, self.overall_rating
+            ),
+            external_url: "https://TODO: NEXTJS URL".to_string(),
+            image: format!(
+                "ipfs://{}/{}.svg",
+                Player::player_svg_dir_cid(),
+                self.jersey_number,
+            ),
+            tier: self.tier(),
+            attributes: self.attributes(),
+        }
+    }
+
+    pub fn player_svg_dir_cid() -> String {
+        "QmXg8bcnf2HpEaedTwek2eHsiEGCrZh8fYkLtGzsoeCqRk".to_string()
     }
 }
 
