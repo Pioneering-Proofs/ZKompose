@@ -19,9 +19,9 @@ include!(concat!(env!("OUT_DIR"), "/methods.rs"));
 mod tests {
     use alloy_primitives::{address, U256};
     use alloy_sol_types::SolValue;
-    use common::types::{GenPlayersInput, GenTeamInput, Player, Roster};
-    use json::parse;
-    use risc0_zkvm::{default_executor, serde, ExecutorEnv};
+    use common::types::{GenPlayersInput, GenPlayersJournal, Player, PlayerJson, Skills, Team};
+    use json::{parse, stringify};
+    use risc0_zkvm::{default_executor, guest::env::write_slice, serde, ExecutorEnv};
     use std::{env::current_dir, fs};
 
     #[test]
@@ -82,14 +82,11 @@ mod tests {
 
     #[test]
     fn prove_gen_players() {
-        // let player_count = U8::from(10);
-        // let std_dev = U8::from(10);
-        // let median = U8::from(50);
         let input = GenPlayersInput {
             buyer_pubkey: "".to_string(),
-            order_id: 0,
+            order_id: 42,
             std_dev: 10,
-            median: 50,
+            tier: 1,
             u: 3.14159,
             v: 2123.71828,
         };
@@ -106,12 +103,14 @@ mod tests {
 
         println!("Generated players: {:?}", session_info.journal.bytes);
 
-        let cids: [String; 15] = serde::from_slice(&session_info.journal.bytes)
+        let output: GenPlayersJournal = serde::from_slice(&session_info.journal.bytes)
             .expect("Failed to decode players from guest");
 
-        println!("Player data: {:?}", cids.len());
+        println!("Player data: {:?}", output.cids.len());
+        println!("Tier: {}", output.tier);
+        println!("Order ID: {}", output.order_id);
 
-        for cid in cids.iter() {
+        for cid in output.cids.iter() {
             println!("CID: {:?}", cid);
         }
     }

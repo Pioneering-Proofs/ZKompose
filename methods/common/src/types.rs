@@ -1,4 +1,4 @@
-use alloy_primitives::{address, Address, U256};
+use alloy_primitives::{address, Address, U256, U8};
 use risc0_steel::ethereum::EthEvmInput;
 use serde::{Deserialize, Serialize};
 
@@ -80,7 +80,7 @@ pub struct GenPlayersInput {
     pub buyer_pubkey: String,
     pub order_id: u32,
     pub std_dev: u8,
-    pub median: u8,
+    pub tier: u8,
     pub u: f64,
     pub v: f64,
 }
@@ -145,4 +145,11 @@ pub struct Attribute {
     pub display_type: String,
     pub trait_type: String,
     pub value: u8,
+}
+
+#[derive(Clone, Serialize, Deserialize)]
+pub struct GenPlayersJournal {
+    pub tier: U8,
+    pub order_id: U256,
+    pub cids: [String; 15],
 }
