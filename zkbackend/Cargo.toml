@@ -1,0 +1,19 @@
+[package]
+name = "zkbackend"
+version = { workspace = true }
+edition = { workspace = true }
+
+[dependencies]
+array-init = "2.1.0"
+common = { path = "../methods/common" }
+methods = { workspace = true }
+risc0-ethereum-contracts = { workspace = true }
+risc0-zkvm = { workspace = true, features = ["client"] }
+serde.workspace = true
+shuttle-rocket = "0.47.0"
+shuttle-runtime = "0.47.0"
+tokio = "1.26.0"
+
+[dependencies.rocket]
+version = "0.5.0"
+features = ["json"]
