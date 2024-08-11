@@ -3,9 +3,9 @@
  * @see https://v0.dev/t/DHoPpuIM9Li
  * Documentation: https://v0.dev/docs#integrating-generated-code-into-your-nextjs-app
  */
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import Link from "next/link";
-import secp256k1 from 'secp256k1';
+import secp256k1 from "secp256k1";
 
 import { Address } from "viem";
 import { useSignMessage, useWriteContract } from "wagmi";
@@ -26,8 +26,16 @@ import { toast } from "sonner";
 import { waitTx } from "@/lib/utils";
 
 const plans = [
-  { tier: Tier.Diamond, name: TierText.Diamond, price: tierPricer(Tier.Diamond) },
-  { tier: Tier.Platinum, name: TierText.Platinum, price: tierPricer(Tier.Platinum) },
+  {
+    tier: Tier.Diamond,
+    name: TierText.Diamond,
+    price: tierPricer(Tier.Diamond),
+  },
+  {
+    tier: Tier.Platinum,
+    name: TierText.Platinum,
+    price: tierPricer(Tier.Platinum),
+  },
   { tier: Tier.Gold, name: TierText.Gold, price: tierPricer(Tier.Gold) },
   { tier: Tier.Silver, name: TierText.Silver, price: tierPricer(Tier.Silver) },
   { tier: Tier.Bronze, name: TierText.Bronze, price: tierPricer(Tier.Bronze) },
@@ -44,7 +52,7 @@ export default function Cards({ address }: { address?: Address }) {
     const message = `Purchase order for ${address}`;
     const signature = await signMessageAsync({ message });
     await handlePurchase(signature);
-  }
+  };
 
   const handlePurchase = async (signData: string) => {
     if (!signData || !tier) return;
@@ -57,18 +65,18 @@ export default function Cards({ address }: { address?: Address }) {
 
       const hash = await writeContractAsync({
         abi: PLAYERS_ABI,
-        address: address as Address,
-        functionName: "re",
-        args: [
-          tier,
-          pubKey
-        ],
+        address: "0xfAa746C91B8704BF52ba0aF84ded324fAEf37A7c",
+        functionName: "requestPack",
+        args: [tier, pubKey],
         value: tierPricer(tier),
       });
-      await waitTx(hash);
+      console.log("hash", hash);
+      const team = await waitTx(hash);
+      console.log("team", team);
       toast.success("Pack purchased successfully", { id });
     } catch (error) {
       toast.error("Failed to purchase pack", { id });
+      console.log("Failed to purchase pack", error);
     }
   };
 
