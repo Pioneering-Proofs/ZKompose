@@ -5,14 +5,20 @@ import Navbar from "../components/Navbar";
 import Cards from "@/components/Cards";
 import { UserProvider } from "./UserProvider";
 
+import { Button } from "@/components/ui/button";
+
+
 function App() {
   const { address, status, chainId } = useAccount();
   const { connectors, connect, error } = useConnect();
   const { disconnect } = useDisconnect();
 
+  const account = useAccount();
   return (
     <UserProvider>
-      <div>
+
+      {/* <div>
+
         <h2 className="text-xl">Account</h2>
 
         <div>
@@ -28,9 +34,9 @@ function App() {
             Disconnect
           </button>
         )}
-      </div>
+      </div> */}
 
-      <div>
+      {/* <div>
         <h2>Connect</h2>
         {connectors.map((connector) => (
           <button
@@ -43,9 +49,25 @@ function App() {
         ))}
         <div>{status}</div>
         <div>{error?.message}</div>
+      </div> */}
+      <div className="ml-auto flex gap-2">
+        {account.status === "connected" && (
+          <Button variant={"outline"} onClick={() => disconnect()}>
+            Disconnect
+          </Button>
+        )}
+        {connectors.map((connector) => (
+          <Button
+            key={connector.uid}
+            onClick={() => connect({ connector })}
+            type="button"
+          >
+            {connector.name}
+          </Button>
+        ))}
       </div>
 
-      <Navbar />
+
       <Cards address={address} />
     </UserProvider>
   );

@@ -1,13 +1,15 @@
 import { http, cookieStorage, createConfig, createStorage } from 'wagmi'
-import { sepolia } from 'wagmi/chains'
-import { coinbaseWallet, injected } from 'wagmi/connectors'
+
+import { mainnet, sepolia } from 'wagmi/chains'
+import { injected } from 'wagmi/connectors'
+
 
 export function getConfig() {
   return createConfig({
     chains: [sepolia],
     connectors: [
       injected(),
-      coinbaseWallet(),
+
     ],
     storage: createStorage({
       storage: cookieStorage,

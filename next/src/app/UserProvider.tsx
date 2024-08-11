@@ -6,7 +6,10 @@ export const UserProvider = ({ children }: { children: React.ReactNode }) => {
   const [key, setKey] = useState<Buffer | null>(null);
   const UserContext = createContext({ key });
   const { signMessage } = useSignMessage();
-  const { status } = useAccount();
+
+  const { address, status } = useAccount();
+  let isNewConnection = true;
+
 
   const setKeys = async (signData: string) => {
     try {
@@ -36,20 +39,24 @@ export const UserProvider = ({ children }: { children: React.ReactNode }) => {
     async onConnect(data) {
       const signData = "session data" + { data };
       console.log("signData: ", signData);
-      if (status !== "connected") {
-        signMessage({ message: "You are connecting your wallet to the app" });
-      }
-      if (window.localStorage.getItem("privKey") === null) {
-        const privKey = await setKeys(signData);
 
-        console.log("new privKey: ", privKey);
-      } else {
-        try {
-          const privKey = await getLocalKey();
-          console.log("existing privKey: ", privKey);
-          return privKey;
-        } catch (e) {
-          console.error("Failed to get private key from local storage: ", e);
+      console.log("address: ", address);
+      if (!address) {
+        signMessage({ message: "You are connecting your wallet to the app" });
+        isNewConnection = false;
+        if (window.localStorage.getItem("privKey") === null) {
+          const privKey = await setKeys(signData);
+
+          console.log("new privKey: ", privKey);
+        } else {
+          try {
+            const privKey = await getLocalKey();
+            console.log("existing privKey: ", privKey);
+            return privKey;
+          } catch (e) {
+            console.error("Failed to get private key from local storage: ", e);
+          }
+
         }
       }
     },
