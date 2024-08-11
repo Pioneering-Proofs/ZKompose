@@ -1,11 +1,35 @@
-use super::types::{Coach, Player, PlayerData, PlayerJson, Roster, Skills, Team};
-use ipfs_unixfs::file::adder::FileAdder;
+use super::types::{
+    CIDError, Coach, ContentAddressable, FileStats, Player, PlayerData, PlayerJson, Roster, Skills,
+    Team,
+};
+use super::utils::compute_cid;
+
+impl ContentAddressable for Player {
+    fn content_stats(&self) -> FileStats {
+        let mut stats = FileStats::default();
+        stats.cid = self.cid.clone();
+        // TODO: Need to fill in the template file
+        stats
+    }
+}
 
 impl Player {
-    fn matches_cid(&self, input: &[u8]) -> bool {
-        let mut adder = FileAdder::default();
+    pub fn matches_cid(&self, input: &[u8]) -> Result<bool, CIDError> {
+        let cid = match self.cid {
+            Some(ref cid) => cid,
+            None => return Err(CIDError::EmptyCID),
+        };
 
-        true
+        let stats = compute_cid(input);
+        match stats.cid {
+            Some(ref c) => Ok(c == cid),
+            None => Err(CIDError::NoDataBytes),
+        }
+    }
+
+    pub fn compute_cid(&mut self, input: &[u8]) {
+        let stats = compute_cid(input);
+        self.cid = stats.cid;
     }
 }
 

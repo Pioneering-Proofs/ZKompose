@@ -1,6 +1,14 @@
 use serde::{Deserialize, Serialize};
-// TODO: Cid does not conform to Serialize. Using Str for now
-// use cid::Cid;
+
+pub(crate) trait ContentAddressable {
+    fn content_stats(&self) -> FileStats;
+}
+
+#[derive(Clone, Debug)]
+pub enum CIDError {
+    EmptyCID,
+    NoDataBytes,
+}
 
 ///
 #[derive(Clone, Debug, Deserialize, PartialEq, Serialize)]
@@ -32,7 +40,7 @@ pub struct Coach {
 #[derive(Clone, Debug, Deserialize, PartialEq, Serialize)]
 pub struct Player {
     pub token_id: u32,
-    pub cid: String, //Cid,
+    pub cid: Option<String>, //Cid,
     pub skills: Skills,
     pub skill_multiplier: f32,
 }
@@ -103,4 +111,11 @@ pub struct Skill {
     pub defense: u8,
     pub physical: u8,
     pub goal_tending: u8,
+}
+
+#[derive(Clone, Debug, Default, Deserialize, PartialEq, Serialize)]
+pub struct FileStats {
+    pub cid: Option<String>, //Cid,
+    pub blocks: usize,
+    pub bytes: u64,
 }

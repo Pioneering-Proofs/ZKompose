@@ -19,9 +19,7 @@ include!(concat!(env!("OUT_DIR"), "/methods.rs"));
 mod tests {
     use alloy_primitives::{address, hex::deserialize, Address, U256, U8};
     use alloy_sol_types::SolValue;
-    use common::types::{
-        GenPlayersInput, Player, PlayerData, PlayerJson, PlayerPosition, Skills, Team,
-    };
+    use common::types::{GenPlayersInput, Player, PlayerJson, Skills, Team};
     use json::{parse, stringify};
     use risc0_zkvm::{default_executor, guest::env::write_slice, serde, ExecutorEnv};
     use std::{env::current_dir, fs};
@@ -60,6 +58,21 @@ mod tests {
         let session_info = default_executor()
             .execute(env, super::BUILD_TEAM_ELF)
             .unwrap();
+    }
+
+    #[test]
+    fn player_cid() {
+        let current = current_dir().unwrap();
+        let file_name: String;
+        if current.ends_with("methods") {
+            file_name = "../data/players/0.json".to_string();
+        } else {
+            file_name = "../../data/players/0.json".to_string();
+        }
+        let player_data =
+            fs::read_to_string(file_name).expect("Should have been able to read the file");
+        let player = Player::try_from(player_data).unwrap();
+        println!("Player data: {:?}", player);
     }
 
     #[test]
