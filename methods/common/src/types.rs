@@ -29,9 +29,10 @@ pub struct FileStats {
 #[derive(Clone, Debug, Deserialize, PartialEq, Serialize)]
 pub struct Team {
     pub roster: Roster,
-    pub coach: Coach,
+    // pub coach: Coach,
     pub name: String,
     pub logo: Option<String>, //Cid,
+    pub team_rating: u8,
 }
 
 /// Player struct encodes the on-chain token ID, the CID of the player's IPFS data, the player's traits, and a skill multiplier.
@@ -84,6 +85,14 @@ pub struct GenPlayersInput {
     pub v: f64,
 }
 
+#[derive(Debug, Serialize, Deserialize)]
+pub struct GenTeamInput {
+    pub name: String,
+    pub roster: Roster,
+    pub owner: Address,
+    pub logo_uri: Option<String>,
+}
+
 #[derive(Debug, Deserialize, Serialize)]
 pub struct BuildTeamInput {
     pub chain_config: EthEvmInput,
@@ -108,10 +117,10 @@ pub struct PlayerJson {
 
 #[derive(Clone, Debug, Deserialize, PartialEq, Serialize)]
 pub struct Roster {
-    pub goal_keeper: Player,
-    pub defenders: [Player; 4],
-    pub midfielders: [Player; 3],
-    pub forwards: [Player; 3],
+    pub goal_tender: Player,
+    pub defense: [Player; 4],
+    pub mid: [Player; 3],
+    pub offense: [Player; 3],
 }
 
 #[derive(Clone, Debug, Deserialize, PartialEq, Serialize)]
