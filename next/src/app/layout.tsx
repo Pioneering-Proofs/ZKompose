@@ -7,6 +7,7 @@ import { cookieToInitialState } from "wagmi";
 
 import { getConfig } from "../wagmi";
 import { Providers } from "./providers";
+import { Toaster } from "@/components/ui/sonner";
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -23,6 +24,7 @@ export default function RootLayout(props: { children: ReactNode }) {
   return (
     <html lang="en">
       <body className={inter.className}>
+        <Toaster />
         <Providers initialState={initialState}>{props.children}</Providers>
       </body>
     </html>
