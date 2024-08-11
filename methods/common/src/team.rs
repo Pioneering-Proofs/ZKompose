@@ -1,6 +1,6 @@
 use crate::utils::compute_cid;
 
-use super::types::{Player, PlayerPosition, Roster, Team};
+use super::types::{PlayerPosition, Roster, Team};
 use serde_json;
 
 impl IntoIterator for Roster {

@@ -1,5 +1,5 @@
 use common::math::new_u_v;
-use common::types::{GenPlayersInput, Player, PlayerJson};
+use common::types::{GenPlayersInput, GenTeamInput, Player, PlayerJson, Team};
 use risc0_zkvm::{default_executor, serde::from_slice, ExecutorEnv};
 use rocket::serde::{json::Json, Deserialize, Serialize};
 use rocket::{get, post, routes};
@@ -58,33 +58,41 @@ fn gen_player(req_body: Json<PlayerRequestBody>) -> Json<Vec<PlayerJson>> {
         );
     }
 
-    println!("Input: {:?}", input);
+    Json(players)
+}
 
+#[post("/", data = "<req_body>")]
+fn gen_team(req_body: Json<GenTeamInput>) -> Json<Team> {
+    let team = Team::new(
+        req_body.roster.clone(),
+        req_body.name.clone(),
+        req_body.logo_uri.clone(),
+    );
+    let input = GenTeamInput {
+        roster: req_body.roster.clone(),
+        name: req_body.name.clone(),
+        owner: req_body.owner.clone(),
+        logo_uri: req_body.logo_uri.clone(),
+    };
     let env = ExecutorEnv::builder()
         .write(&input)
-        .expect("Invalid input")
+        .unwrap()
         .build()
         .unwrap();
 
     let session_info = default_executor()
-        .execute(env, methods::GEN_PLAYER_ELF)
+        .execute(env, methods::BUILD_TEAM_ELF)
         .unwrap();
 
-    let cids: [String; 15] =
-        from_slice(&session_info.journal.bytes).expect("Failed to decode players from guest");
-
-    for cid in cids.iter() {
-        println!("CID: {:?}", cid);
-    }
-
-    Json(players)
+    Json(team)
 }
 
 #[shuttle_runtime::main]
 async fn main() -> shuttle_rocket::ShuttleRocket {
     let rocket = rocket::build()
         .mount("/", routes![index])
-        .mount("/gen-player", routes![gen_player]);
+        .mount("/gen-player", routes![gen_player])
+        .mount("/gen-team", routes![gen_team]);
 
     Ok(rocket.into())
 }

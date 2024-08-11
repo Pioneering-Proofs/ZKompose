@@ -49,15 +49,14 @@ impl TryFrom<JsonValue> for Team {
     type Error = DecodingError;
 
     fn try_from(value: JsonValue) -> Result<Self, Self::Error> {
-        Ok(Team {
-            name: String::from(value["name"].as_str().expect("No team name")),
-            logo: match value.contains("logo") {
+        Ok(Team::new(
+            Roster::try_from(value["roster"].clone()).unwrap(),
+            String::from(value["name"].as_str().expect("No team name")),
+            match value.contains("logo") {
                 true => Some(String::from(value["logo"].as_str().unwrap())),
                 false => None,
             },
-            roster: Roster::try_from(value["roster"].clone()).unwrap(),
-            team_rating: value["team_rating"].as_u8().expect("No team rating"),
-        })
+        ))
     }
 }
 
