@@ -9,5 +9,8 @@ pub mod utils;
 /// Implementation for player struct
 pub mod player;
 
+/// Implementation for team struct
+pub mod team;
+
 /// Implements statistics functions for generating players along normal distributions
 pub mod math;

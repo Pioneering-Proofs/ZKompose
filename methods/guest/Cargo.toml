@@ -20,13 +20,14 @@ alloy-primitives = { version = "0.6", default-features = false, features = [
     "serde",
     "std",
 ] }
-alloy-sol-types = { version = "0.6" }
+alloy-sol-types = { version = "0.7.7" }
 risc0-zkvm = { version = "1.0", default-features = false, features = ['std'] }
 json = "0.12"
 serde = "1.0.205"
 serde_json = "1.0.122"
 sha2 = "0.10.8"
 array-init = "2.1.0"
+risc0-steel = { version = "0.11.0" }
 
 [profile.release]
 lto = "thin"

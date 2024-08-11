@@ -1,3 +1,5 @@
+use alloy_primitives::{address, Address, U256};
+use risc0_steel::ethereum::EthEvmInput;
 use serde::{Deserialize, Serialize};
 
 pub(crate) trait ContentAddressable {
@@ -80,6 +82,13 @@ pub struct GenPlayersInput {
     pub median: u8,
     pub u: f64,
     pub v: f64,
+}
+
+#[derive(Debug, Deserialize, Serialize)]
+pub struct BuildTeamInput {
+    pub chain_config: EthEvmInput,
+    pub owner: Address,
+    pub roster: Roster,
 }
 
 // TODO: Drop this in lieu of PlayerMetadata

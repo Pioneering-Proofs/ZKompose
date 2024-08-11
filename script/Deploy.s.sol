@@ -76,7 +76,7 @@ contract EvenNumberDeploy is Script {
             // If set, use the predeployed verifier address found in the config.
             verifier = IRiscZeroVerifier(riscZeroVerifierAddress);
 
-            address fulfillerAddress =
+            fulfillerAddress =
                 stdToml.readAddress(config, string.concat(configProfileKey, ".fulfillerAddress"));
         }
 
