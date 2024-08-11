@@ -67,7 +67,7 @@ export default function Cards({ address }: { address?: Address }) {
         abi: PLAYERS_ABI,
         address: "0xfAa746C91B8704BF52ba0aF84ded324fAEf37A7c",
         functionName: "requestPack",
-        args: [tier, pubKey],
+        args: [tier],
         value: tierPricer(tier),
       });
       console.log("hash", hash);
