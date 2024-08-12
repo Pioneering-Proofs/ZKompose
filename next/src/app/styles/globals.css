@@ -59,6 +59,13 @@ body,
     --chart-5: 340 75% 55%;
   }
 }
+.player-group {
+  display: flex;
+  width: 70%;
+  height: 10%;
+  justify-content: space-around;
+  align-items: center;
+}
 
 .player {
   position: relative;

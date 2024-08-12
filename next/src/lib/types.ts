@@ -5,6 +5,13 @@ export interface Team {
   team_rating: number;
 }
 
+export enum Position {
+  goal_tender = "goal_tender",
+  defense = "defense",
+  mid = "mid",
+  offense = "offense",
+}
+
 export interface Roster {
   goal_tender?: Player;
   defense: Player[];
