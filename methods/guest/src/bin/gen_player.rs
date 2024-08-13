@@ -38,19 +38,19 @@ fn main() {
     let mut cids: [[u8; 32]; 15] = array_init(|_| [0; 32]);
 
     for i in 0..15 {
-        let cid: [u8; 46] = Player::new(
+        let cid = Player::new(
             (input.order_id.to::<u32>() * 15) + i as u32,
             10,
             median,
             u.to::<u64>() as f64,
             v.to::<u64>() as f64,
         )
-        .cid()
-        .as_bytes()
-        .try_into()
-        .expect("CID is not 46 bytes");
+        .cid();
+        println!("CID: {:?}", cid);
+        let bytes: [u8; 46] = cid.as_bytes().try_into().expect("CID is not 46 bytes");
         for j in 0..32 {
-            cids[i][j] = cid[j + 13];
+            // Only 32 byte hash is needed to store. Hash and codec are known
+            cids[i][j] = bytes[j + 13];
         }
     }
 

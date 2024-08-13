@@ -19,7 +19,7 @@ risc0-zkvm = { workspace = true, features = ["client"] }
 
 [dependencies]
 common = { path = "./common" }
-cid = { default-features = false, version = "0.11.1" }
+cid = { default-features = true, version = "0.11.1" }
 ipfs-unixfs = "0.2.0"
 risc0-steel = { version = "0.11.0" }
 json = "0.12"

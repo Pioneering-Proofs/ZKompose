@@ -18,8 +18,8 @@ include!(concat!(env!("OUT_DIR"), "/methods.rs"));
 #[cfg(test)]
 mod tests {
     use alloy_primitives::{address, hex::ToHex, U256};
-    use alloy_sol_types::SolValue;
-    use cid::Cid;
+    use alloy_sol_types::{sol, SolValue};
+    use cid::{multihash, Cid};
     use common::types::{
         GenPlayersInput, GenPlayersJournal, GenTeamInput, Player, PlayerJson, Roster, Skills, Team,
     };
@@ -88,19 +88,31 @@ mod tests {
 
     #[test]
     fn prove_gen_players() {
-        let input = GenPlayersInput {
-            order_id: 42,
+        sol! {
+            struct Input {
+                uint8 tier;
+                uint256 order_id;
+                uint8 std_dev;
+                uint256 u;
+                uint256 v;
+            }
+
+            struct Journal {
+                uint8 tier;
+                uint256 order_id;
+                bytes32[15] cids;
+            }
+        }
+        let input = Input {
+            order_id: U256::from(42),
             std_dev: 10,
             tier: 1,
-            u: 3.14159,
-            v: 2123.71828,
-        };
+            u: U256::from(3.14159),
+            v: U256::from(2123.71828),
+        }
+        .abi_encode();
 
-        let env = ExecutorEnv::builder()
-            .write(&input)
-            .expect("Invalid input")
-            .build()
-            .unwrap();
+        let env = ExecutorEnv::builder().write_slice(&input).build().unwrap();
 
         let session_info = default_executor()
             .execute(env, super::GEN_PLAYER_ELF)
@@ -108,23 +120,20 @@ mod tests {
 
         println!("Generated players: {:?}", session_info.journal.bytes);
 
-        let output: GenPlayersJournal = serde::from_slice(&session_info.journal.bytes)
-            .expect("Failed to decode players from guest");
+        let output: Journal = Journal::abi_decode(&session_info.journal.bytes, true)
+            .expect("Failed to decode output journal");
 
         println!("Player data: {:?}", output.cids.len());
         println!("Tier: {}", output.tier);
         println!("Order ID: {}", output.order_id);
 
         for cid in output.cids.iter() {
-            let bytes = cid.0;
-            let mut hex = String::new();
-            for byte in bytes {
-                hex.push_str(&format!("{:02x}", byte));
-            }
-            println!("CID: {:?}", hex);
-            // for byte in cid.iter() {
-            //     print!("{:02x}", byte);
-            // }
+            let prefix = vec![0x12_u8, 0x20_u8];
+            let hash = Vec::<u8>::from(cid.0);
+            let multihash = multihash::Multihash::from_bytes([prefix, hash].concat().as_slice())
+                .expect("Failed to create multihash");
+            let cid = Cid::new_v0(multihash).unwrap();
+            println!("CID: {:?}", cid);
         }
 
         // let env = ExecutorEnv::builder()
