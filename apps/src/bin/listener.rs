@@ -9,6 +9,7 @@ use alloy::{
 };
 use clap::Parser;
 use common::{
+    constants::PLAYER_CONTRACT_ADDRESS,
     math::new_u_v,
     types::{GenPlayersJournal, Player},
     utils::match_player_tier,
@@ -67,9 +68,10 @@ struct Args {
 }
 
 async fn request_proof(input: Vec<u8>) -> Option<(Journal, Vec<u8>)> {
+    let mut output: Vec<u8> = Vec::new();
     let env = ExecutorEnv::builder()
         .write_slice(&input)
-        // .unwrap()
+        .stdout(&mut output)
         .build()
         .unwrap();
 
@@ -86,8 +88,8 @@ async fn request_proof(input: Vec<u8>) -> Option<(Journal, Vec<u8>)> {
     let journal = receipt.journal.bytes.clone();
     let input = Input::abi_decode(&input, true).expect("Failed to decode input");
 
-    let output: Journal = <Journal>::abi_decode(&journal, true).expect("Failed to decode output");
-    let cids = output.cids.clone();
+    let journal: Journal = <Journal>::abi_decode(&journal, true).expect("Failed to decode output");
+    let cids = journal.cids.clone();
 
     let median = match_player_tier(input.tier);
     let mut u = input.u.to::<u32>() as f64;
@@ -117,9 +119,9 @@ async fn request_proof(input: Vec<u8>) -> Option<(Journal, Vec<u8>)> {
             let hash = pinned_object.ipfs_hash;
         }
     }
-    println!("Generated players: {:?}", output.cids.len());
+    println!("Generated players: {:?}", journal.cids.len());
 
-    Some((output, seal))
+    Some((journal, seal))
 }
 
 fn match_bytes(tier: FixedBytes<32>) -> u8 {
@@ -136,8 +138,6 @@ fn match_bytes(tier: FixedBytes<32>) -> u8 {
 async fn main() {
     let args = Args::parse();
 
-    let player_contract: Address = address!("B59612143d5DE1CFdd0403459B35D8A2CC73164F");
-
     let signer: PrivateKeySigner = args.priv_key.clone().parse().expect("Invalid private key");
     let wallet = EthereumWallet::from(signer);
     let rpc_provider = {
@@ -149,6 +149,7 @@ async fn main() {
     };
     let rpc_provider = rpc_provider.await.expect("Failed to connect");
 
+    let player_contract = Address::from_slice(PLAYER_CONTRACT_ADDRESS.to_vec().as_slice());
     let filter = Filter::new()
         .address(player_contract)
         .event(IPlayers::PackRequested::SIGNATURE)
@@ -162,7 +163,7 @@ async fn main() {
 
     println!(
         "Listening Pack Request events on contract {}",
-        player_contract
+        PLAYER_CONTRACT_ADDRESS
     );
 
     while let Some(log) = stream.next().await {

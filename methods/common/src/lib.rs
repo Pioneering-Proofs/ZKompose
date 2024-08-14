@@ -14,3 +14,6 @@ pub mod team;
 
 /// Implements statistics functions for generating players along normal distributions
 pub mod math;
+
+/// Constants used across the project
+pub mod constants;

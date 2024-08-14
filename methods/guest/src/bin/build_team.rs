@@ -6,7 +6,6 @@ use common::{
     team,
     types::{GenTeamInput, Player, PlayerPosition, Roster, Skills, Team},
 };
-use json::parse;
 use risc0_steel::{
     config::ETH_SEPOLIA_CHAIN_SPEC,
     ethereum::{EthEvmEnv, EthEvmInput},

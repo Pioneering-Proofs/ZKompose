@@ -16,6 +16,7 @@ pub trait Template {
 pub enum CIDError {
     EmptyCID,
     NoDataBytes,
+    DecodeFailed,
 }
 
 #[derive(Clone, Debug, Default, Deserialize, PartialEq, Serialize)]

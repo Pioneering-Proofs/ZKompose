@@ -17,23 +17,18 @@ include!(concat!(env!("OUT_DIR"), "/methods.rs"));
 
 #[cfg(test)]
 mod tests {
-    use alloy_primitives::{address, hex::ToHex, U256};
+    use alloy_primitives::{address, U256};
     use alloy_sol_types::{sol, SolValue};
-    use cid::{multihash, Cid, CidGeneric};
+    use cid::Cid;
     use common::{
-        math::new_u_v,
-        types::{
-            GenPlayersInput, GenPlayersJournal, GenTeamInput, Player, PlayerJson, Roster, Skills,
-            Team,
-        },
-        utils::match_player_tier,
+        constants::SHA256_PREFIX,
+        types::{GenTeamInput, Player, Roster, Team},
     };
-    use json::{parse, stringify};
+    use json::parse;
     use risc0_zkvm::{
-        default_executor, default_prover, guest::env::write_slice, serde, ExecutorEnv, ProverOpts,
-        VerifierContext,
+        default_executor, default_prover, serde, ExecutorEnv, ProverOpts, VerifierContext,
     };
-    use std::{env::current_dir, fs, io::Read, str::Bytes};
+    use std::{env::current_dir, fs};
 
     #[test]
     fn prove_build_team() {
@@ -108,10 +103,9 @@ mod tests {
             }
         }
         let order_id = 42;
-        let std_dev = 10;
         let tier = 1;
-        let mut u = 3.14159;
-        let mut v = 2123.71828;
+        let u = 3.14159;
+        let v = 2123.71828;
 
         let input = Input {
             tier,
@@ -120,26 +114,29 @@ mod tests {
             v: U256::from(v),
         }
         .abi_encode();
+        let mut output: Vec<u8> = Vec::new();
 
-        let env = ExecutorEnv::builder().write_slice(&input).build().unwrap();
+        let env = ExecutorEnv::builder()
+            .write_slice(&input)
+            .stdout(&mut output)
+            .build()
+            .unwrap();
 
         let session_info = default_executor()
             .execute(env, super::GEN_PLAYER_ELF)
             .unwrap();
 
-        let output: Journal = Journal::abi_decode(&session_info.journal.bytes, true)
+        let journal: Journal = Journal::abi_decode(&session_info.journal.bytes, true)
             .expect("Failed to decode output journal");
 
-        println!("Player data: {:?}", output.cids.len());
-        println!("Tier: {}", output.tier);
-        println!("Order ID: {}", output.order_id);
+        println!("Player data: {:?}", journal.cids.len());
+        println!("Tier: {}", journal.tier);
+        println!("Order ID: {}", journal.order_id);
 
-        // let mut i = 0;
-        let prefix = vec![18_u8, 32_u8];
-        for cid in output.cids.iter() {
+        for cid in journal.cids.iter() {
             let cid_bytes = cid.to_vec();
-            let cid =
-                Cid::try_from([prefix.clone(), cid_bytes].concat()).expect("Failed to create CID");
+            let cid = Cid::try_from([SHA256_PREFIX.to_vec().clone(), cid_bytes].concat())
+                .expect("Failed to create CID");
             println!("CID: {:?}", cid.to_string());
         }
 

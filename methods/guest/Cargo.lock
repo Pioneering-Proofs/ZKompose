@@ -631,7 +631,7 @@ version = "0.5.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "8709d481fb78b9808f34a1b4b4fadd08a15a0971052c18bc2b751faefaed595e"
 dependencies = [
- "multibase",
+ "multibase 0.8.0",
  "multihash 0.11.4",
  "unsigned-varint 0.3.3",
 ]
@@ -643,6 +643,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "3147d8272e8fa0ccd29ce51194dd98f79ddfb8191ba9e3409884e751798acf3a"
 dependencies = [
  "core2",
+ "multibase 0.9.1",
  "multihash 0.19.1",
  "unsigned-varint 0.8.0",
 ]
@@ -1007,6 +1008,7 @@ dependencies = [
  "alloy-primitives 0.6.4",
  "alloy-sol-types",
  "array-init",
+ "cid 0.11.1",
  "common",
  "json",
  "risc0-steel",
@@ -1213,6 +1215,17 @@ name = "multibase"
 version = "0.8.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "b78c60039650ff12e140ae867ef5299a58e19dded4d334c849dc7177083667e2"
+dependencies = [
+ "base-x",
+ "data-encoding",
+ "data-encoding-macro",
+]
+
+[[package]]
+name = "multibase"
+version = "0.9.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "9b3539ec3c1f04ac9748a260728e855f261b4977f5c3406612c884564f329404"
 dependencies = [
  "base-x",
  "data-encoding",

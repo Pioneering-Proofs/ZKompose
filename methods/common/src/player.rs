@@ -3,6 +3,7 @@ use super::types::{
     Attribute, CIDError, ContentAddressable, FileStats, Player, PlayerJson, Skills,
 };
 use super::utils::compute_cid;
+use cid::Cid;
 use std::env;
 use std::fmt::format;
 
@@ -18,6 +19,23 @@ impl ContentAddressable for Player {
 impl Player {
     pub fn cid(&self) -> Vec<u8> {
         compute_cid(self.fill_template().as_bytes()).cid
+    }
+
+    pub fn cid_string(&self) -> Result<String, CIDError> {
+        let cid_bytes = self.cid();
+        if cid_bytes.is_empty() {
+            return Err(CIDError::EmptyCID);
+        }
+        let cid = Cid::try_from(cid_bytes);
+        match cid {
+            Ok(cid) => Ok(cid.to_string()),
+            Err(_) => Err(CIDError::DecodeFailed),
+        }
+    }
+
+    pub fn formatted_cid(&self) -> Result<String, CIDError> {
+        let cid_string = self.cid_string()?;
+        Ok(["ipfs://", &cid_string].concat())
     }
 
     // TODO: conform to Template trait
