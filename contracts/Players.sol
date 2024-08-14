@@ -91,19 +91,20 @@ contract Players is ERC721EnumerableURI, IPlayers {
     }
 
     /// @inheritdoc IPlayers
-    function fulfillPackOrder(uint256 orderId, bytes32[15] calldata URIs, bytes calldata seal) external {
+    function fulfillPackOrder(uint256 orderId, bytes32[15] calldata cids, bytes calldata seal) external {
         if (msg.sender != packFulfiller) revert UnauthorizedFulfiller(msg.sender);
 
         PackRequest storage request = _packRequests[orderId];
         if (request.requester == address(0)) revert PackOrderNotFound(orderId);
 
-        bytes memory journal = abi.encode(request.tier, orderId, URIs);
+        bytes memory journal = abi.encode(request.tier, orderId, cids);
         verifier.verify(seal, genPlayerImageId, sha256(journal));
 
         for (uint256 i = 0; i < 15; i++) {
-            _mint(request.requester, (orderId * 15) + i, URIs[i]);
-            currentPackId++;
+            _mint(request.requester, (orderId * 15) + i, cids[i]);
         }
+
+        currentPackId++;
 
         delete _packRequests[orderId];
     }
@@ -139,10 +140,10 @@ contract Players is ERC721EnumerableURI, IPlayers {
     //  ─────────────────────────────────────────────────────────────────────────────
 
     // TODO: Implement this in robust way. Using this for rapid testing
-    function mintPlayer(uint256 tokenId, bytes32 cid) public payable {
-        if (_ownerOf(tokenId) != address(0)) revert ERC721AlreadyMinted(tokenId);
+    // function mintPlayer(uint256 tokenId, bytes32 cid) public payable {
+    //     if (_ownerOf(tokenId) != address(0)) revert ERC721AlreadyMinted(tokenId);
 
-        _mint(msg.sender, tokenId, cid);
-    }
+    //     _mint(msg.sender, tokenId, cid);
+    // }
 
 }

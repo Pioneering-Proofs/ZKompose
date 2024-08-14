@@ -82,7 +82,7 @@ impl Team {
         serde_json::to_string(self).unwrap()
     }
 
-    pub fn cid(&self) -> String {
-        compute_cid(self.to_json().as_bytes()).cid.unwrap()
+    pub fn cid(&self) -> Vec<u8> {
+        compute_cid(self.to_json().as_bytes()).cid
     }
 }

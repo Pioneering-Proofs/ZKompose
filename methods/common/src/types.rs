@@ -20,7 +20,8 @@ pub enum CIDError {
 
 #[derive(Clone, Debug, Default, Deserialize, PartialEq, Serialize)]
 pub struct FileStats {
-    pub cid: Option<String>, //Cid,
+    /// CID v0 bytes
+    pub cid: Vec<u8>,
     pub blocks: usize,
     pub bytes: u64,
 }
@@ -39,7 +40,7 @@ pub struct Team {
 #[derive(Clone, Debug, Deserialize, PartialEq, Serialize)]
 pub struct Player {
     pub token_id: u32,
-    pub cid: Option<String>, //Cid,
+    pub cid: Option<Vec<u8>>, //Cid,
     pub name: String,
     pub overall_rating: u8,
     pub skills: Skills,

@@ -26,7 +26,7 @@ pub fn compute_cid(input: &[u8]) -> FileStats {
     let mut stats = FileStats::default();
     for (cid, block) in blocks {
         // [18, 32, 220, 232, 214, 52, 213, 200, 177, 163, 3, 84, 141, 30, 88, 42, 34, 45, 50, 100, 19, 248, 7, 94, 22, 62, 7, 10, 14, 149, 143, 160, 50, 5]
-        stats.cid = Some(cid.to_string());
+        stats.cid = cid.to_bytes();
         stats.blocks += 1;
         stats.bytes += block.len() as u64;
     }
@@ -107,7 +107,7 @@ impl TryFrom<JsonValue> for Player {
     fn try_from(value: JsonValue) -> Result<Self, Self::Error> {
         let token_id = value["token_id"].as_u32();
         let cid = match value["cid"].as_str() {
-            Some(cid) => Some(String::from(cid)),
+            Some(cid) => Some(String::from(cid).into_bytes()),
             None => None,
         };
         let name = value["name"].as_str();

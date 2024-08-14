@@ -19,16 +19,21 @@ include!(concat!(env!("OUT_DIR"), "/methods.rs"));
 mod tests {
     use alloy_primitives::{address, hex::ToHex, U256};
     use alloy_sol_types::{sol, SolValue};
-    use cid::{multihash, Cid};
-    use common::types::{
-        GenPlayersInput, GenPlayersJournal, GenTeamInput, Player, PlayerJson, Roster, Skills, Team,
+    use cid::{multihash, Cid, CidGeneric};
+    use common::{
+        math::new_u_v,
+        types::{
+            GenPlayersInput, GenPlayersJournal, GenTeamInput, Player, PlayerJson, Roster, Skills,
+            Team,
+        },
+        utils::match_player_tier,
     };
     use json::{parse, stringify};
     use risc0_zkvm::{
         default_executor, default_prover, guest::env::write_slice, serde, ExecutorEnv, ProverOpts,
         VerifierContext,
     };
-    use std::{env::current_dir, fs, io::Read};
+    use std::{env::current_dir, fs, io::Read, str::Bytes};
 
     #[test]
     fn prove_build_team() {
@@ -92,7 +97,6 @@ mod tests {
             struct Input {
                 uint8 tier;
                 uint256 order_id;
-                uint8 std_dev;
                 uint256 u;
                 uint256 v;
             }
@@ -103,12 +107,17 @@ mod tests {
                 bytes32[15] cids;
             }
         }
+        let order_id = 42;
+        let std_dev = 10;
+        let tier = 1;
+        let mut u = 3.14159;
+        let mut v = 2123.71828;
+
         let input = Input {
-            order_id: U256::from(42),
-            std_dev: 10,
-            tier: 1,
-            u: U256::from(3.14159),
-            v: U256::from(2123.71828),
+            tier,
+            order_id: U256::from(order_id),
+            u: U256::from(u),
+            v: U256::from(v),
         }
         .abi_encode();
 
@@ -118,8 +127,6 @@ mod tests {
             .execute(env, super::GEN_PLAYER_ELF)
             .unwrap();
 
-        println!("Generated players: {:?}", session_info.journal.bytes);
-
         let output: Journal = Journal::abi_decode(&session_info.journal.bytes, true)
             .expect("Failed to decode output journal");
 
@@ -127,34 +134,30 @@ mod tests {
         println!("Tier: {}", output.tier);
         println!("Order ID: {}", output.order_id);
 
+        // let mut i = 0;
+        let prefix = vec![18_u8, 32_u8];
         for cid in output.cids.iter() {
-            let prefix = vec![0x12_u8, 0x20_u8];
-            let hash = Vec::<u8>::from(cid.0);
-            let multihash = multihash::Multihash::from_bytes([prefix, hash].concat().as_slice())
-                .expect("Failed to create multihash");
-            let cid = Cid::new_v0(multihash).unwrap();
-            println!("CID: {:?}", cid);
+            let cid_bytes = cid.to_vec();
+            let cid =
+                Cid::try_from([prefix.clone(), cid_bytes].concat()).expect("Failed to create CID");
+            println!("CID: {:?}", cid.to_string());
         }
 
-        // let env = ExecutorEnv::builder()
-        //     .write(&input)
-        //     .expect("Invalid input")
-        //     .build()
-        //     .unwrap();
+        let env = ExecutorEnv::builder().write_slice(&input).build().unwrap();
 
-        // let prover = default_prover();
-        // let receipt = prover
-        //     .prove_with_ctx(
-        //         env,
-        //         &VerifierContext::default(),
-        //         super::GEN_PLAYER_ELF,
-        //         &ProverOpts::groth16(),
-        //     )
-        //     .unwrap()
-        //     .receipt;
-        // receipt.verify(super::GEN_PLAYER_ID).unwrap();
+        let prover = default_prover();
+        let receipt = prover
+            .prove_with_ctx(
+                env,
+                &VerifierContext::default(),
+                super::GEN_PLAYER_ELF,
+                &ProverOpts::groth16(),
+            )
+            .unwrap()
+            .receipt;
+        receipt.verify(super::GEN_PLAYER_ID).unwrap();
 
-        // println!("Proof verified");
+        println!("Proof verified");
     }
 
     #[test]

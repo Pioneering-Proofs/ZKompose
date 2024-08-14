@@ -34,13 +34,7 @@ abstract contract ERC721EnumerableURI is ERC721Enumerable, IERC4906 {
 
         bytes32 _tokenCID = _tokenCIDs[tokenId];
         string memory base = _baseURI();
-
-        // If both are set, concatenate the baseURI and tokenURI (via string.concat).
-        if (_tokenCID != bytes32(0x0)) {
-            return string.concat(base, cidv0(_tokenCID));
-        }
-
-        return super.tokenURI(tokenId);
+        return string.concat(base, cidv0(_tokenCID));
     }
 
     //  ───────────────────────────  ERC-165 Conformance  ───────────────────────────  \\
@@ -84,7 +78,8 @@ abstract contract ERC721EnumerableURI is ERC721Enumerable, IERC4906 {
     //  Encoding
     //  ─────────────────────────────────────────────────────────────────────────────
 
-    function cidv0(bytes32 sha256Hash) internal pure returns (string memory) {
+    function cidv0(bytes32 sha256Hash) internal view returns (string memory) {
+        // TODO: Use bytelib to concatenate bytes more efficiently
         bytes memory hashString = new bytes(34);
         hashString[0] = 0x12;
         hashString[1] = 0x20;

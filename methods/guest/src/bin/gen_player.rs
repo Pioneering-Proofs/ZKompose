@@ -1,4 +1,4 @@
-use alloy_primitives::{FixedBytes, U256, U8};
+use alloy_primitives::{FixedBytes, U256, U32, U8};
 use alloy_sol_types::{sol, SolValue};
 use array_init::array_init;
 use common::{
@@ -13,7 +13,6 @@ sol! {
     struct Input {
         uint8 tier;
         uint256 order_id;
-        uint8 std_dev;
         uint256 u;
         uint256 v;
     }
@@ -32,8 +31,8 @@ fn main() {
     let input: Input = <Input>::abi_decode(&input_bytes, true).unwrap();
 
     let median = match_player_tier(input.tier);
-    let mut u = input.u;
-    let mut v = input.v;
+    let mut u: f64 = input.u.to::<u64>() as f64;
+    let mut v: f64 = input.v.to::<u64>() as f64;
 
     let mut cids: [[u8; 32]; 15] = array_init(|_| [0; 32]);
 
@@ -42,25 +41,24 @@ fn main() {
             (input.order_id.to::<u32>() * 15) + i as u32,
             10,
             median,
-            u.to::<u64>() as f64,
-            v.to::<u64>() as f64,
+            u,
+            v,
         )
         .cid();
-        println!("CID: {:?}", cid);
-        let bytes: [u8; 46] = cid.as_bytes().try_into().expect("CID is not 46 bytes");
+        let bytes: [u8; 34] = cid.try_into().expect("CID is not 46 bytes");
         for j in 0..32 {
-            // Only 32 byte hash is needed to store. Hash and codec are known
-            cids[i][j] = bytes[j + 13];
+            // Only 32 byte multihash is needed to store. CID Version and codec are known
+            cids[i][j] = bytes[j + 2];
         }
+
+        (u, v) = new_u_v(u, v);
     }
 
     let journal = Journal {
         tier: input.tier,
         order_id: input.order_id,
-        cids: cids.map(|cid| cid.into()),
+        cids: cids.map(|bytes| bytes.into()),
     };
-    env::commit_slice(journal.abi_encode().as_slice()); // &ys[1 .. 4]
-                                                        // env::commit_slice(U8::from(input.tier).abi_encode().as_slice());
-                                                        // env::commit_slice(journal.abi_encode().as_slice());
-                                                        // env::commit(&journal);
+
+    env::commit_slice(journal.abi_encode().as_slice());
 }
