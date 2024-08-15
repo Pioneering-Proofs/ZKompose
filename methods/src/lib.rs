@@ -21,7 +21,7 @@ mod tests {
     use alloy_sol_types::{sol, SolValue};
     use cid::Cid;
     use common::{
-        constants::SHA256_PREFIX,
+        constants::{PLAYER_BATCH_SIZE, SHA256_PREFIX},
         types::{GenTeamInput, Player, Roster, Team},
     };
     use json::parse;
@@ -126,6 +126,10 @@ mod tests {
             .execute(env, super::GEN_PLAYER_ELF)
             .unwrap();
 
+        let players: [Player; PLAYER_BATCH_SIZE] =
+            serde::from_slice(&output).expect("Failed to decode players from guest stdout");
+        // let players: [Player; PLAYER_BATCH_SIZE] =
+        //     serde::from_slice(&output).expect("Failed to decode players from guest stdout");
         let journal: Journal = Journal::abi_decode(&session_info.journal.bytes, true)
             .expect("Failed to decode output journal");
 

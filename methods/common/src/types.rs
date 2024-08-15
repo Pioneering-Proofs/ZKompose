@@ -19,7 +19,7 @@ pub enum CIDError {
     DecodeFailed,
 }
 
-#[derive(Clone, Debug, Default, Deserialize, PartialEq, Serialize)]
+#[derive(Clone, Debug, Default, PartialEq, Deserialize, Serialize)]
 pub struct FileStats {
     /// CID v0 bytes
     pub cid: Vec<u8>,
@@ -28,7 +28,7 @@ pub struct FileStats {
 }
 
 ///
-#[derive(Clone, Debug, Deserialize, PartialEq, Serialize)]
+#[derive(Clone, Debug, PartialEq, Deserialize, Serialize)]
 pub struct Team {
     pub roster: Roster,
     // pub coach: Coach,
@@ -38,18 +38,17 @@ pub struct Team {
 }
 
 /// Player struct encodes the on-chain token ID, the CID of the player's IPFS data, the player's traits, and a skill multiplier.
-#[derive(Clone, Debug, Deserialize, PartialEq, Serialize)]
+#[derive(Clone, Debug, PartialEq, Deserialize, Serialize)]
 pub struct Player {
     pub token_id: u32,
-    pub cid: Option<Vec<u8>>, //Cid,
-    pub name: String,
     pub overall_rating: u8,
+    pub(crate) name_indicies: [u8; 2],
     pub skills: Skills,
-    pub skill_multiplier: f32,
+    pub(crate) skill_multiplier_bips: u32,
     pub jersey_number: u8,
 }
 
-#[derive(Clone, Debug, Deserialize, PartialEq, Serialize)]
+#[derive(Clone, Debug, PartialEq, Deserialize, Serialize)]
 pub struct PlayerCreationParams {
     pub(crate) standard_deviation: u8,
     pub(crate) median: u8,
@@ -57,7 +56,7 @@ pub struct PlayerCreationParams {
     pub(crate) v: f64,
 }
 
-// #[derive(Clone, Debug, Default, Deserialize, PartialEq, Serialize)]
+// #[derive(Clone, Debug, Default, PartialEq, Deserialize, Serialize)]
 // pub struct PlayerMetadata {
 //     pub(crate) name: Option<String>,
 //     pub(crate) external_url: String,
@@ -102,7 +101,7 @@ pub struct BuildTeamInput {
 }
 
 // TODO: Drop this in lieu of PlayerMetadata
-#[derive(Clone, Debug, Deserialize, PartialEq, Serialize)]
+#[derive(Clone, Debug, PartialEq, Deserialize, Serialize)]
 pub struct PlayerJson {
     pub name: String,
     pub description: String,
@@ -116,7 +115,7 @@ pub struct PlayerJson {
     pub skill: Skills,
 }
 
-#[derive(Clone, Debug, Deserialize, PartialEq, Serialize)]
+#[derive(Clone, Debug, PartialEq, Deserialize, Serialize)]
 pub struct Roster {
     pub goal_tender: Player,
     pub defense: [Player; 4],
@@ -124,7 +123,7 @@ pub struct Roster {
     pub offense: [Player; 3],
 }
 
-#[derive(Clone, Debug, Deserialize, PartialEq, Serialize)]
+#[derive(Clone, Debug, PartialEq, Deserialize, Serialize)]
 pub struct Coach {
     pub name: String,
     pub goal_muliplier: f32,
@@ -133,7 +132,7 @@ pub struct Coach {
     pub forward_multiplier: f32,
 }
 
-#[derive(Clone, Debug, Deserialize, PartialEq, Serialize)]
+#[derive(Clone, Debug, PartialEq, Deserialize, Serialize)]
 pub enum PlayerPosition {
     Goalie(Player),
     Defense(Player, u8),
@@ -141,7 +140,7 @@ pub enum PlayerPosition {
     Offense(Player, u8),
 }
 
-#[derive(Clone, Debug, Deserialize, PartialEq, Serialize)]
+#[derive(Clone, Debug, PartialEq, Deserialize, Serialize)]
 pub struct Attribute {
     pub display_type: String,
     pub trait_type: String,

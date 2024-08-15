@@ -5,20 +5,13 @@ use super::types::{
 use super::utils::compute_cid;
 use cid::Cid;
 use std::env;
-use std::fmt::format;
-
-impl ContentAddressable for Player {
-    fn content_stats(&self) -> FileStats {
-        let mut stats = FileStats::default();
-        stats.cid = self.cid();
-        // TODO: Need to fill in the template file
-        stats
-    }
-}
 
 impl Player {
-    pub fn cid(&self) -> Vec<u8> {
-        compute_cid(self.fill_template().as_bytes()).cid
+    pub fn cid(&self) -> [u8; 34] {
+        compute_cid(self.fill_template().as_bytes())
+            .cid
+            .try_into()
+            .expect("Failed to extract CID bytes")
     }
 
     pub fn cid_string(&self) -> Result<String, CIDError> {
@@ -26,7 +19,7 @@ impl Player {
         if cid_bytes.is_empty() {
             return Err(CIDError::EmptyCID);
         }
-        let cid = Cid::try_from(cid_bytes);
+        let cid = Cid::try_from(cid_bytes.to_vec());
         match cid {
             Ok(cid) => Ok(cid.to_string()),
             Err(_) => Err(CIDError::DecodeFailed),
@@ -45,7 +38,7 @@ impl Player {
 
         let template_str = self
             .template()
-            .replace("NAME", &self.name)
+            .replace("NAME", &self.name())
             .replace("JERSEY_NUMBER", &self.jersey_number.to_string())
             .replace("EXTERNAL_URL", &format!("{}{}", base_uri, self.token_id))
             .replace(
@@ -54,7 +47,7 @@ impl Player {
             )
             .replace("TIER", self.tier().to_string().as_str())
             .replace("OVERALL_RATING", self.overall_rating.to_string().as_str())
-            .replace("SKILL_MULTIPLIER", &self.skill_multiplier.to_string())
+            .replace("SKILL_MULTIPLIER", &self.skill_multiplier().to_string())
             .replace("SPEED", &self.skills.speed.to_string())
             .replace("SHOOTING", &self.skills.shooting.to_string())
             .replace("PASSING", &self.skills.passing.to_string())
@@ -80,6 +73,10 @@ impl Player {
 
         let skill_scores = generate_skill_scores(max_rating, u, v);
         let jersey_number: u8 = hash_i32(u + v, Some(0), Some(999)) as u8;
+        let name_indices = [
+            hash_i32(u + v, Some(0), Some(24)) as u8,
+            hash_i32(u + v, Some(0), Some(24)) as u8,
+        ];
 
         let skills = Skills {
             speed: skill_scores[0],
@@ -94,18 +91,38 @@ impl Player {
 
         Player {
             token_id,
-            cid: None,
-            name: random_name(hash_i32(u + v, Some(0), Some(24))),
+            name_indicies: name_indices,
             overall_rating,
             skills,
-            skill_multiplier: 1.0,
+            skill_multiplier_bips: 10_000,
             jersey_number,
         }
     }
 
-    pub fn compute_cid(&mut self, input: &[u8]) {
-        let stats = compute_cid(input);
-        self.cid = Some(stats.cid);
+    pub fn skill_multiplier(&self) -> f32 {
+        self.skill_multiplier_bips as f32 / 10_000.0
+    }
+
+    pub fn name(&self) -> String {
+        make_name(self.name_indicies[0] as i32, self.name_indicies[1] as i32)
+    }
+
+    pub(crate) fn name_indices(name: String) -> Result<[u8; 2], &'static str> {
+        let mut name_indices = [0; 2];
+        let name_parts: Vec<&str> = name.split(" ").collect();
+        if name_parts.len() == 2 {
+            name_indices[0] = FIRST_NAMES
+                .iter()
+                .position(|&r| r == name_parts[0])
+                .expect("Invalid first name") as u8;
+            name_indices[1] = LAST_NAMES
+                .iter()
+                .position(|&r| r == name_parts[1])
+                .expect("Invalid last name") as u8;
+        } else {
+            return Err("Invalid name. Must be 2 words longs.");
+        }
+        Ok(name_indices)
     }
 
     pub fn tier(&self) -> u8 {
@@ -155,14 +172,16 @@ impl Player {
 
     pub fn to_json(&self) -> PlayerJson {
         PlayerJson {
-            name: self.name.clone(),
+            name: self.name().clone(),
             overall_rating: self.overall_rating,
             skill: self.skills.clone(),
-            skill_multiplier: self.skill_multiplier,
+            skill_multiplier: self.skill_multiplier(),
             jersey_number: self.jersey_number,
             description: format!(
                 "#{} {}. Overall rating of {}.",
-                self.jersey_number, self.name, self.overall_rating
+                self.jersey_number,
+                self.name(),
+                self.overall_rating
             ),
             external_url: "https://TODO: NEXTJS URL".to_string(),
             image: format!(
@@ -208,45 +227,49 @@ impl PlayerJson {
     }
 }
 
-fn random_name(seed: i32) -> String {
-    let first_name: [&str; 25] = [
-        "James", "John", "Robert", "Michael", "William", "David", "Richard", "Joseph", "Thomas",
-        "Charles", "Daniel", "Matthew", "Anthony", "Donald", "Mark", "Paul", "Steven", "Andrew",
-        "Kenneth", "Joshua", "George", "Kevin", "Brian", "Edward", "Ronald",
-    ];
-    let last_name: [&str; 25] = [
-        "Smith",
-        "Johnson",
-        "Williams",
-        "Jones",
-        "Brown",
-        "Davis",
-        "Miller",
-        "Wilson",
-        "Moore",
-        "Taylor",
-        "Anderson",
-        "Thomas",
-        "Jackson",
-        "White",
-        "Harris",
-        "Martin",
-        "Thompson",
-        "Garcia",
-        "Martinez",
-        "Robinson",
-        "Clark",
-        "Rodriguez",
-        "Lewis",
-        "Lee",
-        "Walker",
-    ];
+const FIRST_NAMES: [&str; 25] = [
+    "James", "John", "Robert", "Michael", "William", "David", "Richard", "Joseph", "Thomas",
+    "Charles", "Daniel", "Matthew", "Anthony", "Donald", "Mark", "Paul", "Steven", "Andrew",
+    "Kenneth", "Joshua", "George", "Kevin", "Brian", "Edward", "Ronald",
+];
+const LAST_NAMES: [&str; 25] = [
+    "Smith",
+    "Johnson",
+    "Williams",
+    "Jones",
+    "Brown",
+    "Davis",
+    "Miller",
+    "Wilson",
+    "Moore",
+    "Taylor",
+    "Anderson",
+    "Thomas",
+    "Jackson",
+    "White",
+    "Harris",
+    "Martin",
+    "Thompson",
+    "Garcia",
+    "Martinez",
+    "Robinson",
+    "Clark",
+    "Rodriguez",
+    "Lewis",
+    "Lee",
+    "Walker",
+];
 
-    let first_name_index = seed % first_name.len() as i32;
-    let last_name_index = seed % last_name.len() as i32;
-
+fn make_name(first_name_index: i32, last_name_index: i32) -> String {
     format!(
         "{} {}",
-        first_name[first_name_index as usize], last_name[last_name_index as usize]
+        FIRST_NAMES[first_name_index as usize], LAST_NAMES[last_name_index as usize]
     )
+}
+
+fn random_name(seed: i32) -> String {
+    let first_name_index = seed % FIRST_NAMES.len() as i32;
+    let last_name_index = seed % LAST_NAMES.len() as i32;
+
+    make_name(first_name_index, last_name_index)
 }

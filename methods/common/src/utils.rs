@@ -92,10 +92,7 @@ impl TryFrom<String> for Player {
     fn try_from(value: String) -> Result<Self, Self::Error> {
         let json_parsed = json::parse(&value).unwrap();
         match Player::try_from(json_parsed) {
-            Ok(mut player) => {
-                player.compute_cid(value.clone().to_string().as_bytes());
-                Ok(player)
-            }
+            Ok(player) => Ok(player),
             Err(e) => Err(e),
         }
     }
@@ -106,10 +103,6 @@ impl TryFrom<JsonValue> for Player {
 
     fn try_from(value: JsonValue) -> Result<Self, Self::Error> {
         let token_id = value["token_id"].as_u32();
-        let cid = match value["cid"].as_str() {
-            Some(cid) => Some(String::from(cid).into_bytes()),
-            None => None,
-        };
         let name = value["name"].as_str();
         let overall_rating = value["overall_rating"].as_u8();
         let jersey_number = value["jersey_number"].as_u8();
@@ -126,12 +119,11 @@ impl TryFrom<JsonValue> for Player {
         {
             Ok(Player {
                 token_id: token_id.unwrap(),
-                cid,
-                name: String::from(name.unwrap()),
+                name_indicies: Player::name_indices(name.unwrap().to_string()).unwrap(),
                 overall_rating: overall_rating.unwrap(),
                 jersey_number: jersey_number.unwrap(),
                 skills: skills.unwrap(),
-                skill_multiplier: skill_multiplier.unwrap(),
+                skill_multiplier_bips: (skill_multiplier.unwrap() * (10_000 as f32)) as u32,
             })
         } else {
             // if simple decoding fails, try parsing as NFT metadata
@@ -194,7 +186,7 @@ impl TryFrom<JsonValue> for Roster {
 impl Hash for Player {
     fn hash<H: Hasher>(&self, state: &mut H) {
         self.token_id.hash(state);
-        self.cid.hash(state);
+        // self.cid.hash(state);
         self.skills.hash(state);
     }
 }
